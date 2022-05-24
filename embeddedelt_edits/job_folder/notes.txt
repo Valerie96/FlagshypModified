@@ -1,0 +1,26 @@
+Ok so basically 1h_xt works now (since I fixed part of the velcotiy update). 
+2h is a bit off, but it doesn't seem to be a damping problem
+The x displacement is too small, just slightly. Maybe that's it?
+
+Stress should be uniform accross eleements and it's not
+Rerun 1 hex model but cut hex in half b/c that shouldn't change the internal forces
+
+Halved hex model is fine. But adding more nodes does change the kinetic energy. Confirmed in Abaqus. 
+But it least it matches Abaqus. Why doesn't the regular sized one match? wtf
+
+Figured it out. The boundary conditions of two nodes were wrong. Except the uncorrected version doesn't work. Too much force
+
+Try doing applied force with two element.
+It looks terrible pls help
+
+Ok boundary conditions were skrewed up. Y dof is no longer fixed in applied force
+but now something with the reaction force or force calculation is off. The fixed dof are accelerating for some reason
+
+
+I needed to uptdate external_load_effective after the reaction forces were updated by getForce. And I probably mixed up some +- signs
+while trying to fix other things
+%step 8 - getForce
+  [GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate] = getForce_explicit(CON.xlamb,...
+          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,BC,DAMPING,dt);
+
+  GLOBAL.external_load_effective = GLOBAL.external_load + GLOBAL.Reactions;

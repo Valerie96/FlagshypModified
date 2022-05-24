@@ -1,0 +1,1 @@
+Contents of this folder were used in the embedded element energy paper. Unfortanuatly, embed_1h_2t_correct was destroyed while I was trying to create the multi-host functionality in Flagshyp 

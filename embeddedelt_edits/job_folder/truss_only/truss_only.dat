@@ -1,0 +1,17 @@
+3-D EmbeddedElt
+Explicit Analysis	1
+Embedded Elements	0
+VolumeCorrection 	0
+1
+truss2
+2
+1 7 0.25 0 0
+2 2 0.25 0.4 0
+1
+1 1 0 1 2
+1
+1 2 7800.0 2e11 0.3 0.2 2E6 1
+0.01
+0 1 0 0.0 0.0 0.0
+2 2 0.02
+1 20.0 1.0 25 1.e-6 0.0 0.0 1 1 2 2
