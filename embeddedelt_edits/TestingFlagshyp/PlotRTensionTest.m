@@ -1,5 +1,4 @@
-%% Abaqus vs Embedded Abaqus vs   Flagshyp 1 vs Flagshyp 2 vs Flagshyp 3 Energy
-
+%% Homogenous material Abaqus and Flagshyp vs Data
 suffix = '';
 
 [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('RussellTension-1-5',suffix));
@@ -29,7 +28,6 @@ PlotEnergy([AbqEOne.time, AbqEOne.IE],[FLAG_1.Etime, FLAG_1.IE], name1a, name1, 
 PlotEnergy([AbqEOne.time, -AbqEOne.WK],[FLAG_1.Etime, FLAG_1.WK], name1a, name1, 'External Work')
 PlotEnergy([AbqEOne.time, AbqEOne.ETOTAL],[FLAG_1.Etime, FLAG_1.ET], name1a, name1, 'Total Energy')
 PlotEnergy([AbqEOne.time, AbqEOne.VD], [FLAG_VD1.Etime, FLAG_VD1.VD], name1a,name1,'Viscous Disipation')
-
 
 IEerror_0t = abs(AbqEOne.IE(end) - FLAG_1.IE(end))/AbqEOne.IE(end)
 %%
@@ -61,11 +59,11 @@ legend("show");
 %%
 %Russell Tensile 0 Nodes: 82, 46
 %Russell Tensile 1-5 Nodes: 660, 1252 Elements: 420, 410
-Abq420=80; Abq410=70; Abq660=150; Abq1262=182;
+Abq420=80; Abq410=70; Abq660=150; Abq1261=182;
 figure();
 hold on; grid on;
 % fig=gcf; fig.Position=graphsize;
-plot(AbqOneHost.time,AbqOneHost.RF(:,1,Abq1262),'bo','DisplayName',name1a);
+plot(AbqOneHost.time,AbqOneHost.RF(:,1,Abq1261),'bo','DisplayName',name1a);
 plot(FLAG_1.time,FLAG_1.RF(:,1,1262),'b','DisplayName',name1,'LineWidth',3);
 title("X Reaction Force");
 xlabel("Time (s)");
@@ -135,18 +133,6 @@ ylabel("Stress (Pa)");
 legend('show');
 
 
-%%
-figure();
-hold on; grid on;
-% fig=gcf; fig.Position=graphsize;
-plot(AbqOneHost.time,AbqOneHost.S(:,4,1),'bo','DisplayName',name1a);
-plot(FLAG_1.time,FLAG_1.HostS(:,4,1),'b','DisplayName',name1,'LineWidth',3);
-title("Host YY Stress");
-xlabel("Time (s)");
-ylabel("Stress (Pa)");
-legend('show');
-
-
 %% Data vs Embedded Abaqus 
 
 suffix = '6';
@@ -154,7 +140,7 @@ suffix = '6';
 [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('RussellTension-1-5_12Fibers',suffix));
 [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel('RussellTension-1-5_100Fibers4');
 %Russell Tensile 1-5 Nodes: 660, 1252 Elements: 420, 410
-Abq420=80; Abq410=70; Abq660=150; Abq1262=182;
+Abq420=80; Abq410=70; Abq660=150; Abq1261=182;
 
 C=readcell(strcat("RussellTensionExperiment-10-2", '.xltx'));
 Data= cell2mat(C(2:end,:));
@@ -180,43 +166,32 @@ figure();
 hold on; grid on;
 % fig=gcf; fig.Position=graphsize;
 plot(Ex_Strain,Ex_Stress,'k','DisplayName',name1,'LineWidth',4)
-plot(AbqOneHost.U(:,1,Abq1262)/l0,AbRF*10^-6/A0,'bo','DisplayName',name1a);
+plot(AbqOneHost.U(:,1,Abq1261)/l0,AbRF*10^-6/A0,'bo','DisplayName',name1a);
 % plot(FLAG_1.Disp(:,3,460),FRF,'b','DisplayName',name1,'LineWidth',3);
 title(strcat("Tension Stress vs Strain Ver",suffix));
 xlabel("Strain (m/m)");
 ylabel("Stress (MPa)");
+xlim([0 0.005]);
 legend('show');
-%%
+
 figure();
 hold on; grid on;
 % fig=gcf; fig.Position=graphsize;
-plot(AbqOneHost.U(:,1,Abq1262),AbRF,'bo','DisplayName',name1a);
+plot(AbqOneHost.U(:,1,Abq1261),AbRF,'bo','DisplayName',name1a);
 % plot(FLAG_1.Disp(:,3,460),FRF,'b','DisplayName',name1,'LineWidth',3);
 title("Force vs Displacement");
 xlabel("Displacement (m)");
 ylabel("Force (N)");
 legend('show');
 
-
-%%
-figure();
-hold on; grid on;
-% fig=gcf; fig.Position=graphsize;
-plot(Ex_Strain,Ex_Stress,'k','DisplayName',name1,'LineWidth',4)
-plot(-AbqOneHost.LE(:,6,Abq149),-AbqOneHost.S(:,6,Abq149)*10^-6,'bo','DisplayName',name1a);
-% plot(FLAG_1.Disp(:,3,460),FRF,'b','DisplayName',name1,'LineWidth',3);
-title("Stress vs Strain");
-xlabel("Compressive Strain (m/m)");
-ylabel("Stress (MPa)");
-legend('show');
-%%
+%% Data vs Embedded Abaqus, various fiber bundles
 suffix = ['1','2','3','4','5'];
 % suffix = ["12Fibers5";"100Fibers5";"1000Fibers5";"5000Fibers5"];
 suffix = ["12Fibers5";"12Fibers5-singlelayer";"12Fibers5-doublelayer"];
 suffix = ["12Fibers4-singlelayer";"12Fibers4-doublelayer";"12Fibers5-singlelayer";"12Fibers5-doublelayer";"12Fibers7-singlelayer";"12Fibers7-doublelayer"];
 
 %Russell Tensile 1-5 Nodes: 660, 1252 Elements: 420, 410
-Abq420=80; Abq410=70; Abq660=150; Abq1262=182;
+Abq420=80; Abq410=70; Abq660=150; Abq1261=182;
 
 C=readcell(strcat("RussellTensionExperiment-10-2", '.xltx'));
 Data= cell2mat(C(2:end,:));
@@ -233,7 +208,6 @@ hold on; grid on;
 plot(Ex_Strain,Ex_Stress,'k','DisplayName',name1,'LineWidth',4)
 
 for j=1:length(suffix)
-
 %     [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('RussellTension-1-5_12Fibers',suffix(j)));
     [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('RussellTension-1-5_',suffix(j,:)));
     name1a = strcat("Abaqus Embedded Element Ver. ",suffix(j));
@@ -248,15 +222,68 @@ for j=1:length(suffix)
     %     FRF = FRF+FLAG_1.RF(:,3,boundnodes(i));
     end
 
-    plot(AbqOneHost.U(:,1,Abq1262)/l0,AbRF*10^-6/A0,'o','DisplayName',name1a);
+    plot(AbqOneHost.U(:,1,Abq1261)/l0,AbRF*10^-6/A0,'o','DisplayName',name1a);
     % plot(FLAG_1.Disp(:,3,460),FRF,'b','DisplayName',name1,'LineWidth',3);
 end
-
 
 title("Tension Stress vs Strain");
 xlabel("Strain (m/m)");
 ylabel("Stress (MPa)");
 xlim([0 0.005]);
+legend('show');
+
+
+%% Data vs Flagshyp and Abaqus
+file1="ACIRussellTensile-1-5_5000Fibers7_discritized";
+name1f = "ACIRussellTensile-1-5_5000Fibers7_discritized";
+FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
+
+suffix = ' ';
+
+[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('RussellTension-1-5_5000Fibers5',suffix));
+%Russell Tensile 1-5 Nodes: 660, 1261 Elements: 420, 410
+Abq420=80; Abq410=70; Abq660=150; Abq1261=181;
+
+C=readcell(strcat("RussellTensionExperiment-10-2", '.xltx'));
+Data= cell2mat(C(2:end,:));
+Ex_Strain=Data(:,1); Ex_Stress=Data(:,2);
+graphsize=[100 100 800 400];
+name1 = "Experimental Data";
+name1a = "Abaqus Embedded Element";
+
+boundnodes=[1261 1262 1263 1264 1265 1266 1267 1268 1269 1270 1271 1272 1273 1274 1275 1276 1277 1278 1279 1280 1281 1282 1283 1284 1285 1286 1287 1288 1289 1290];
+Abn=find(AbqOneHost.nodes==boundnodes(1));
+AbRF = AbqOneHost.RF(:,1,Abn);
+FRF = FLAG_1.RF(:,1,boundnodes(1));
+for i=2:length(boundnodes)
+    Abn=find(AbqOneHost.nodes==boundnodes(i));
+    AbRF = AbRF+AbqOneHost.RF(:,1,Abn);
+    FRF = FRF+FLAG_1.RF(:,1,boundnodes(i));
+end
+
+l0=50E-3;
+A0=(4E-3)*(6E-3);
+%%
+figure();
+hold on; grid on;
+% fig=gcf; fig.Position=graphsize;
+plot(Ex_Strain,Ex_Stress,'k','DisplayName',name1,'LineWidth',4)
+plot(AbqOneHost.U(:,1,Abq1261)/l0,AbRF*10^-6/A0,'bo','DisplayName',name1a);
+plot(FLAG_1.Disp(:,1,1261)/l0,FRF*10^-6/A0,'b','DisplayName',name1f,'LineWidth',3);
+title(strcat("Tension Stress vs Strain",suffix));
+xlabel("Strain (m/m)");
+ylabel("Stress (MPa)");
+xlim([0 0.005]);
+legend('show');
+
+figure();
+hold on; grid on;
+% fig=gcf; fig.Position=graphsize;
+plot(AbqOneHost.time,AbqOneHost.U(:,1,Abq1261),'bo','DisplayName',name1a);
+plot(FLAG_1.time,FLAG_1.Disp(:,1,1261),'b','DisplayName',name1f,'LineWidth',3);
+title(strcat("Tension Stress vs Strain",suffix));
+xlabel("Time (s)");
+ylabel("Disp");
 legend('show');
 
 %% Function Defs

@@ -1,4 +1,4 @@
-%% Abaqus vs Embedded Abaqus vs   Flagshyp 1 vs Flagshyp 2 vs Flagshyp 3 Energy
+%% Homogenous material Abaqus and Flagshyp vs Data
 
 suffix = '';
 
@@ -145,17 +145,6 @@ xlabel("Time (s)");
 ylabel("Stress (Pa)");
 legend('show');
 
-figure();
-hold on; grid on;
-% fig=gcf; fig.Position=graphsize;
-plot(AbqOneHost.time,AbqOneHost.S(:,6,Abq149),'bo','DisplayName',name1a);
-plot(FLAG_1.time,FLAG_1.HostS(:,6,149),'b','DisplayName',name1,'LineWidth',3);
-title("Host Element 149 ZZ Stress");
-xlabel("Time (s)");
-ylabel("Stress (Pa)");
-legend('show');
-
-%%
 for i=1:2:27
     figure();
     hold on; grid on;
@@ -206,7 +195,7 @@ xlabel("Compressive Strain (m/m)");
 ylabel("Stress (MPa)");
 legend('show');
 
-%%
+%% Data vs Embedded Abaqus, various fiber bundles
 suffix = ['1','2','3','4','5'];
 suffix = ["12Fibers5";"100Fibers5";"1000Fibers5"];
 suffix = ["12Fibers5";"12Fibers5-singlelayer";"12Fibers5-doublelayer"];
@@ -248,14 +237,68 @@ for j=1:length(suffix)
     % plot(FLAG_1.Disp(:,3,460),FRF,'b','DisplayName',name1,'LineWidth',3);
 end
 
-
 title("Compressive Stress vs Strain");
 xlabel("Strain (m/m)");
 ylabel("Stress (MPa)");
 xlim([0 0.15]);
 legend('show');
 
+%%  Data vs Flagshyp and Abaqus
+file1="ACIAttwoodCompression-1_1000Fibers7_discritized";
+name1f = "FlagshypACI";
+FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
 
+suffix = ' ';
+
+[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat("AttwoodCompression-1_1000Fibers5",suffix));
+%Attwood Compression 1 - Compare nodes 460, elements 149
+Abq460=190; Abq149=41;
+
+C=readcell(strcat("AttwoodCompresionExperiment-L7", '.xltx'));
+Data= cell2mat(C(2:end,:));
+Ex_Strain=Data(:,1); Ex_Stress=Data(:,2);
+graphsize=[100 100 800 400];
+name1 = "Experimental Data";
+name1a = "Abaqus Embedded Element";
+
+boundnodes=[1 2 3 4 5 6 7 8 9 10 51 52 53 54 55 56 57 58 59 60 101 102 103 104 105 106 107 108 109 110 151 152 153 154 155 156 157 158 159 160 201 202 203 204 205 206 207 208 209 210 251 252 253 254 255 256 257 258 259 260 301 302 303 304 305 306 307 308 309 310 351 352 353 354 355 356 357 358 359 360 401 402 403 404 405 406 407 408 409 410 451 452 453 454 455 456 457 458 459 460];
+Abn=find(AbqOneHost.nodes==boundnodes(1));
+AbRF = AbqOneHost.RF(:,3,Abn);
+FRF = FLAG_1.RF(:,3,boundnodes(1));
+for i=2:length(boundnodes)
+    Abn=find(AbqOneHost.nodes==boundnodes(i));
+    AbRF = AbRF+AbqOneHost.RF(:,3,Abn);
+    FRF = FRF+FLAG_1.RF(:,3,boundnodes(i));
+end
+
+t0=1E-3;
+A0=(7E-3)^2;
+%%
+figure();
+hold on; grid on;
+% fig=gcf; fig.Position=graphsize;
+plot(Ex_Strain,Ex_Stress,'k','DisplayName',name1,'LineWidth',4)
+plot(-AbqOneHost.U(:,3,Abq460)/t0,-AbRF*10^-6/A0,'bo','DisplayName',name1a);
+plot(-FLAG_1.Disp(:,3,460)/t0,-FRF*10^-6/A0,'b','DisplayName',name1f,'LineWidth',3);
+title(strcat("Compressive Stress vs Strain",suffix));
+xlabel("Compressive Strain (m/m)");
+ylabel("Stress (MPa)");
+xlim([0 0.15]);
+legend('show');
+
+figure();
+hold on; grid on;
+plot(AbqOneHost.time,-AbqOneHost.U(:,3,Abq460),'bo','DisplayName',name1a);
+plot(FLAG_1.time,-FLAG_1.Disp(:,3,460),'b','DisplayName',name1f,'LineWidth',3);
+title(strcat("Compressive Stress vs Strain",suffix));
+xlabel("Time (s)");
+ylabel("Disp (m)");
+legend('show');
+%%
+PlotEnergy([AbqEOne.time, AbqEOne.KE],[FLAG_1.Etime, FLAG_1.KE], name1a, name1f, 'Compression - Kinetic Energy')
+PlotEnergy([AbqEOne.time, AbqEOne.IE],[FLAG_1.Etime, FLAG_1.IE], name1a, name1f, 'Compression - Internal Energy')
+PlotEnergy([AbqEOne.time, -AbqEOne.WK],[FLAG_1.Etime, FLAG_1.WK], name1a, name1f, 'Compression - External Work')
+PlotEnergy([AbqEOne.time, AbqEOne.ETOTAL],[FLAG_1.Etime, FLAG_1.ET], name1a, name1f, 'Compression - Total Energy')
 
 %% Function Defs
 

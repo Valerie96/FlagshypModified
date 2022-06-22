@@ -7,6 +7,7 @@ function PRO  = welcome(basedir_fem,ansmlv,inputfile)
 %--------------------------------------------------------------------------
 fprintf([' P R O G R A M    F L a g S H y P \n Finite element LArGe'...
          ' Strain HYperelasticity \n Program \n\n']);
+fprintf('%s \n',inputfile);
 %ansmlv   = input([' Is the problem starting from scratch (y/n) ?: ' ' \n'],'s');
 
 %Kraft added. Read from file:

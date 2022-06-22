@@ -7,9 +7,6 @@ function [T_internal,counter,PLAST_element,geomJn_1,VolRate,f_damp] = ...
           element_connectivity,Ve,QUADRATURE,properties,CONSTANT,GEOM,...
           matyp,PLAST,counter,KINEMATICS,MAT,GlobT_int,DAMPING,dt)
       
-%define explicit as global variable in order to use it in function      
-% it is assigned value in Flagshyp.m
-global explicit
 dim=GEOM.ndime;
 
 
@@ -54,18 +51,12 @@ for igauss=1:QUADRATURE(1).element.ngauss
     % only deviatoric component) and internal variables in plasticity.
     %----------------------------------------------------------------------    
     [Cauchy,PLAST,...
-     plast_gauss] = Cauchy_type_selection(kinematics_gauss,properties,...
+     ~] = Cauchy_type_selection(kinematics_gauss,properties,...
                                           CONSTANT,dim,matyp,PLAST,igauss);
     %----------------------------------------------------------------------
-    % Obtain elasticity tensor (for incompressible or nearly incompressible, 
-    % only deviatoric component).
+    % Elasticity tensor is not used in explicit analysis
     %----------------------------------------------------------------------   
-    if(explicit==0)
-        c = elasticity_modulus_selection(kinematics_gauss,properties,CONSTANT,...
-                                      dim,matyp,PLAST,plast_gauss,igauss);
-    else
-        c = 0;
-    end
+    c = 0;
     %----------------------------------------------------------------------
     % Add pressure contribution to stresses and elasticity tensor.
     %----------------------------------------------------------------------    

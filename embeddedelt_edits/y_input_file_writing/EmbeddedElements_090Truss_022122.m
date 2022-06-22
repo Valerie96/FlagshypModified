@@ -56,7 +56,7 @@ OriginalINP = "INPfiles/RussellTensile-Half.inp";
 PartName = "Gauge";
 OutsideNSetName = "nset=Outside"; 
 % 
-NewINP = "RussellTensile-Half_5000Fibers7_discritized.inp";    %-Coarse
+NewINP = "RussellTensile-1_5_5000Fibers7_discritized.inp";    %-Coarse
 
 % OriginalINP = "INPfiles/DyneemaDiskQuarter_thin.inp";
 % PartName = "TargetPlate";

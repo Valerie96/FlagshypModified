@@ -1,7 +1,7 @@
 %--------------------------------------------------------------------------
 % Read the number of elements, element connectivity and material number.
 %--------------------------------------------------------------------------
-function [FEM,MAT] = inelems(FEM,fid)
+function [FEM,MAT] = inelems(FEM,MAT,fid)
 FEM.mesh.nelem = fscanf(fid,'%d',1);  
 format = ['%d %d %d' repmat('%g ',1,FEM.mesh.nelem)];
 info = (fscanf(fid,format,[3+FEM.mesh.n_nodes_elem,FEM.mesh.nelem]))';

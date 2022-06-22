@@ -10,7 +10,7 @@ switch matyp
     case 2 
         DAMPING.b1 = 0; DAMPING.b2 = 0;
         PLAST.ep = 0; PLAST.epbar = 0; 
-        [~,~,~,Jn_1,VolRate,Stress,eps] = element_force_truss(...
+        [~,~,~,~,~,Stress,eps] = element_force_truss(...
           properties,xlocal,x0local,FEM,PLAST,1,GEOM,DAMPING,1);
         
 %         [T_internal,indexi,indexj,global_stiffness,counter,PLAST,Stress,eps] = ...
@@ -67,12 +67,7 @@ if matyp~=2
            LE(~isfinite(LE)) = 0;
        end
        eps(1:end,igauss) = LE(components);
-   
-       
-       
-       
-       
-       
+      
        
    end
    %-----------------------------------------------------------------------

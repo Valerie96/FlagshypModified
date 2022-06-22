@@ -5,18 +5,18 @@ basedir_fem='C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/';
 % basedir_fem='C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/job_folder/StrainRateTesting';
 % inputfile='explicit_wShear.dat';
 % inputfile='multi-test_2h_2t.dat';
-inputfile='explicit_3D_EShear_longtime.dat';
+% inputfile='explicit_3D_EShear_longtime.dat';
 % inputfile = 'RussellTensile-Half_5000Fibers7_discritized.dat';
-inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
-% inputfile = 'Cube_8h_Manyt_Compress.dat';
+% inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
+inputfile = 'Cube_8h_Manyt_Compress.dat';
 
 DAMPING.b1 = 0.04; %Linear bulk viscosity damping
 DAMPING.b2 = 1.2; %Quadratic bulk viscosity damping
 prefactor = 0.7;%0.75;
-outputfreq = 20;
+outputfreq = 100;
 ansmlv='y'; 
 
-vtuOn = 1;
+vtuOn = 0;
 
 %Damping test for 2 hex
 DAMPING.b1 = 0.06; %Linear bulk viscosity damping
@@ -60,14 +60,14 @@ tic
         %--------------------------------------------------------------------------
         %Options: Explicit anaysis, Embedded Elements, Volume Correction 
         %--------------------------------------------------------------------------
-        global explicit;
+%         global explicit;
             text = fgetl(fid);
-            explicit = sscanf(text, "Explicit Analysis	%u");
+            Explicit = sscanf(text, "Explicit Analysis	%u");
             text = fgetl(fid);
-        global EmbedElt;
+%         global EmbedElt;
             EmbedElt = sscanf(text, "Embedded Elements	%u"); 
             text = fgetl(fid);
-        global VolumeCorrect;
+%         global VolumeCorrect;
             VolumeCorrect = sscanf(text, "VolumeCorrection	%u");        
         %--------------------------------------------------------------------------
         % Element type.    
@@ -92,8 +92,11 @@ tic
         % Read the number of elements, element connectivity and material number.
         %--------------------------------------------------------------------------
         GEOM.total_n_elets = 0;
+        MAT.matno=zeros(2,1); MAT.props=zeros(2,1);MAT.nmats=0;MAT.n_nearly_incompressible=0;
+        MAT.matyp=0;
+        MAT = repmat(MAT,2,1);
         for i = 1:FEM(1).n_elet_type
-            [FEM(i),MATA(i)] = inelems(FEM(i) ,fid);
+            [FEM(i),MAT(i)] = inelems(FEM(i),MAT(i) ,fid);
             GEOM.total_n_elets = GEOM.total_n_elets + FEM(i).mesh.nelem;
         end
         %--------------------------------------------------------------------------
@@ -104,10 +107,8 @@ tic
         % Read the number of materials and material properties.  
         %--------------------------------------------------------------------------
         for i = 1:FEM(1).n_elet_type
-            MAT(i) = matprop(MATA(i),FEM(i),fid); %It didn't like returning such a 
-                         %new looking MAT structure so MATA is a temp variable
+            MAT(i) = matprop(MAT(i),FEM(i),fid);                          
         end
-        clear MATA;
         %--------------------------------------------------------------------------
         % Read nodal point loads, prescribed displacements, surface pressure loads
         % and gravity (details in textbook).
@@ -139,6 +140,11 @@ tic
     
     %----------------------------------------------------------------------
     GLOBAL.external_load_effective = GLOBAL.external_load;
+    %----------------------------------------------------------------------
+    %Initilize Energy totals
+    Wint=0;
+    Wext=0;
+    Wvdamp=0;
     %----------------------------------------------------------------------
     % Save into restart file.
     %----------------------------------------------------------------------
@@ -224,7 +230,7 @@ while(Time<tMax)
   
   displ = disp_n-disp_prev; 
   GEOM.x = update_geometry_explicit(GEOM.x,GEOM.x0,1,disp_n(BC.freedof),BC.freedof);
-  dx = GEOM.x - GEOM.x0;
+%   dx = GEOM.x - GEOM.x0;
 %----------------------------------------------------------------   
 
   % save external force, to be used in energy computation
@@ -317,9 +323,9 @@ while(Time<tMax)
  %   GLOBAL.external_load_effective(BC.dofprescribed) = GLOBAL.M(BC.dofprescribed,BC.dofprescribed) * GLOBAL.accelerations(BC.dofprescribed);
 
  % step 11 check energy
-  [energy_value, max_energy] = check_energy_explicit(PRO,FEM,CON,BC, ...
-      GLOBAL,disp_n, disp_prev,GLOBAL.T_int,fi_prev,...
-      GLOBAL.external_load + GLOBAL.Reactions,fe_prev,f_damp,f_damp_prev,Time);  
+  [Wint,Wext,WKE,Wvdamp,energy_value, max_energy] = check_energy_explicit(FEM,BC,GLOBAL,...
+      disp_n, disp_prev,GLOBAL.T_int,fi_prev,...
+      GLOBAL.external_load + GLOBAL.Reactions,fe_prev,f_damp,f_damp_prev,Wint,Wext,Wvdamp,Time);
 
   
 %Plot every # steps
@@ -327,6 +333,9 @@ while(Time<tMax)
       plot_counter = plot_counter +1;
       
       output(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,Time,dt);
+
+      write_energy_output(PRO,CON,Wint,Wext,WKE,Wvdamp,Time)
+
       if vtuOn
         output_vtu(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS);
       end

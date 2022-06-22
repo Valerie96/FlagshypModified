@@ -84,6 +84,7 @@ for i=1:FEM(1).n_elet_type
     fprintf(fid,'\n');
     %--------------------------------------------------------------------------
     % Print material type and connectivities.
+    % How about don't print connectivities, that's a waste of time
     %--------------------------------------------------------------------------
     fprintf(fid,'Elements: %d',FEM(i).mesh.nelem);
     fprintf(fid,'\n');
@@ -91,8 +92,8 @@ for i=1:FEM(1).n_elet_type
     info(:,1)                 =  (1:FEM(i).mesh.nelem)';
     info(:,2)                 =  MAT(i).matno;
     info(:,3:end)             =  FEM(i).mesh.connectivity';
-    format                    =  ['%d %d ' repmat('%d ',1,FEM(i).mesh.n_nodes_elem) '\n'];
-    fprintf(fid,format,info');
+%     format                    =  ['%d %d ' repmat('%d ',1,FEM(i).mesh.n_nodes_elem) '\n'];
+%     fprintf(fid,format,info');
     switch FEM(i).mesh.element_type
         case 'truss2'
             fprintf(fid,'     %s           %s     \n','Sxx','LExx');    

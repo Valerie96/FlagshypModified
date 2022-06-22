@@ -1093,7 +1093,7 @@
 *Elset, elset=Set-1, generate
    1,  420,    1
 ** Section: Gauge
-*Solid Section, elset=Set-1, material=MATRIX-NEOHOOKE
+*Solid Section, elset=Set-1, material=Matrix-NeoHooke
 ,
 *End Part
 **
@@ -2092,17 +2092,17 @@ ALLFIBERS
 ** 
 ** MATERIALS
 ** 
-*Material, name=FIBERS
-*Density
-981.,
-*Elastic
- 1.3e+11, 0.49
-*Material, name=MATRIX-NEOHOOKE
+*Material, name=Fibers
 *Density
 1100.,
 *Hyperelastic, neo hooke
  2.1154e+08, 2.182e-09
-*Material, name=NEOHOOKE
+*Material, name=Matrix-NeoHooke
+*Density
+1100.,
+*Hyperelastic, neo hooke
+ 2.1154e+08, 2.182e-09
+*Material, name=NeoHooke
 *Density
  7.8e+09,
 *Hyperelastic, neo hooke

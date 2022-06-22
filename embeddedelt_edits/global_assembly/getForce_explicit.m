@@ -82,7 +82,7 @@ for k = [FEM(1).n_elet_type:-1:1]
 
      end
         GLOBAL.T_int = Step_globalT_int;
-        globef_damp = Step_globalvdamp;
+%         globef_damp = Step_globalvdamp;
 
 end
     GLOBAL.T_int = Step_globalT_int;
