@@ -1,14 +1,14 @@
 %A bunch of pieces of flagshyp smashed together so I can actually figure
 %out what all of the variables are. This may be a disaster
 clear; clc; close all; 
-basedir_fem='C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/';
+basedir_fem='C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edits/';
 % basedir_fem='C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/job_folder/StrainRateTesting';
 % inputfile='explicit_wShear.dat';
 % inputfile='multi-test_2h_2t.dat';
 % inputfile='explicit_3D_EShear_longtime.dat';
 % inputfile = 'RussellTensile-Half_5000Fibers7_discritized.dat';
-% inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
-inputfile = 'Cube_8h_Manyt_Compress.dat';
+inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
+% inputfile = 'Cube_8h_Manyt_Compress.dat';
 
 DAMPING.b1 = 0.04; %Linear bulk viscosity damping
 DAMPING.b2 = 1.2; %Quadratic bulk viscosity damping
@@ -113,7 +113,7 @@ tic
         % Read nodal point loads, prescribed displacements, surface pressure loads
         % and gravity (details in textbook).
         %--------------------------------------------------------------------------
-        [LOAD,BC,FEM(1),GLOBAL,simtime] = inloads(GEOM,FEM(1),BC,fid);
+        [LOAD,BC,FEM(1),GLOBAL,simtime] = inloads(GEOM,FEM(1),BC,Explicit,fid);
         %--------------------------------------------------------------------------
         % Read control parameters.
         %--------------------------------------------------------------------------
@@ -136,7 +136,7 @@ tic
     %---------------------------------------------------------------------
 
     [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS] = ...
-     initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC);   
+     initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt);   
     
     %----------------------------------------------------------------------
     GLOBAL.external_load_effective = GLOBAL.external_load;

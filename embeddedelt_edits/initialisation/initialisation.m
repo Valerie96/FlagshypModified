@@ -3,13 +3,10 @@
 % and equivalent force vector, excluding pressure components.
 %----------------------------------------------------------------------
 function [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS] = ...
-         initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC)
+         initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt)
 %--------------------------------------------------------------------------    
 % Initialisation of internal variables for plasticity.
 %--------------------------------------------------------------------------    
-global explicit  % needs to be defined in order for explicit to be global
-global EmbedElt;
-global VolumeCorrect;
 
 %|-/ 
 GEOM.element_num = zeros(3,GEOM.total_n_elets); nel=0;
@@ -69,7 +66,7 @@ GLOBAL.Reactions     = zeros(mesh_dof,1);
 
 
 % Define velocity and accelerations for explicit method;
-if (explicit == 1)
+if (Explicit == 1)
     GLOBAL.velocities = zeros(mesh_dof,1);
     GLOBAL.accelerations = zeros(mesh_dof,1);
     GEOM.Jn_1 = ones(mesh_dof,1);
@@ -101,7 +98,7 @@ end
 % (external contributions will be added later on). 
 %-------------------------------------------------------------------------- 
                                        
-if(explicit == 1)
+if(Explicit == 1)
     GLOBAL.external_load = CON.xlamb*GLOBAL.nominal_external_load;
     GLOBAL.T_int     = zeros(FEM(1).mesh.n_dofs,1);
     GLOBAL.Residual = GLOBAL.T_int - GLOBAL.external_load;

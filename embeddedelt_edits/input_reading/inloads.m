@@ -2,10 +2,10 @@
 % Read nodal point loads, prescribed displacements, surface pressure loads
 % and gravity (details in textbook).
 %--------------------------------------------------------------------------
-function [LOAD,BC,FEM,GLOBAL,simtime] = inloads(GEOM,FEM,BC,fid)
-global explicit;
+function [LOAD,BC,FEM,GLOBAL,simtime] = inloads(GEOM,FEM,BC,Explicit,fid)
+% global explicit;
 
-if explicit
+if Explicit
     text = fgetl(fid);
     simtime                    = sscanf(text,'%f');
 else
