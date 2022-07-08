@@ -1,5 +1,5 @@
 %% Data vs Flagshyp and Abaqus
-file1="ACIRussellTensile-Half_5000Fibers7_discritized";
+file1="ACISpeed1RussellTensile-Half_5000Fibers7_discritized";
 name1f = "FlagshypACI";
 FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
 
@@ -97,7 +97,7 @@ function PlotEnergy5(Data1, Data2, Data3, Data4,Data5, Name1, Name2,Name3,Name4,
 end
 
 function [FLAG] = ReadFlagshypOutputFileViscDisp(name)
-basedir=strcat('C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/job_folder/',name);
+basedir=strcat('C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edits/job_folder/',name);
 f = strcat(basedir,'/VDenergy.dat');
 file=fopen(f,'r');
 formatSpec = '%e %e';

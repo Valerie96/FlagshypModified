@@ -15,7 +15,6 @@ function GEOM = inverse_mapping(GEOM,FEM,tienodes)
     e_elts=FEM(2).mesh.embedded;
 
 
-
     NodeHost = zeros(GEOM.npoin,1);
     ElementHost = zeros(GEOM.total_n_elets,4);
     HostTotals = zeros(GEOM.total_n_elets,2);

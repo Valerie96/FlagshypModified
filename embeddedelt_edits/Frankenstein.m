@@ -8,12 +8,12 @@ basedir_fem='C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edit
 % inputfile='explicit_3D_EShear_longtime.dat';
 % inputfile = 'RussellTensile-Half_5000Fibers7_discritized.dat';
 inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
-% inputfile = 'Cube_8h_Manyt_Compress.dat';
+inputfile = 'Cube_8h_4t.dat';
 
 DAMPING.b1 = 0.04; %Linear bulk viscosity damping
 DAMPING.b2 = 1.2; %Quadratic bulk viscosity damping
 prefactor = 0.7;%0.75;
-outputfreq = 100;
+outputfreq = 10;
 ansmlv='y'; 
 
 vtuOn = 0;
@@ -60,14 +60,11 @@ tic
         %--------------------------------------------------------------------------
         %Options: Explicit anaysis, Embedded Elements, Volume Correction 
         %--------------------------------------------------------------------------
-%         global explicit;
             text = fgetl(fid);
             Explicit = sscanf(text, "Explicit Analysis	%u");
             text = fgetl(fid);
-%         global EmbedElt;
             EmbedElt = sscanf(text, "Embedded Elements	%u"); 
             text = fgetl(fid);
-%         global VolumeCorrect;
             VolumeCorrect = sscanf(text, "VolumeCorrection	%u");        
         %--------------------------------------------------------------------------
         % Element type.    
@@ -136,7 +133,7 @@ tic
     %---------------------------------------------------------------------
 
     [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS] = ...
-     initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt);   
+     initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt,VolumeCorrect);   
     
     %----------------------------------------------------------------------
     GLOBAL.external_load_effective = GLOBAL.external_load;
@@ -175,10 +172,10 @@ CON.incrm = CON.incrm + 1;
 
 %step 2 - getForce
 [GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp] = getForce_explicit(CON.xlamb,...
-          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,BC,DAMPING,1);      
+          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,BC,DAMPING,EmbedElt,VolumeCorrect,1);      
      
 %step 3 - compute accelerations.
-GLOBAL.accelerations = inv(GLOBAL.M)*(GLOBAL.external_load - GLOBAL.T_int);
+GLOBAL.accelerations(BC.hostdof(:,1)) = inv(GLOBAL.M)*(GLOBAL.external_load(BC.hostdof(:,1)) - GLOBAL.T_int(BC.hostdof(:,1)));
 
 velocities_half = zeros(FEM(1).mesh.n_dofs,1);
 disp_n = zeros(FEM(1).mesh.n_dofs,1);
@@ -293,7 +290,7 @@ while(Time<tMax)
   
 %step 8 - getForce
   [GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp] = getForce_explicit(CON.xlamb,...
-          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,BC,DAMPING,dt);
+          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,BC,DAMPING,EmbedElt,VolumeCorrect,dt);
 
   GLOBAL.external_load_effective = GLOBAL.external_load + GLOBAL.Reactions;
   
@@ -303,7 +300,7 @@ while(Time<tMax)
 
 %step 9 - compute accelerations.       
   AccOld = GLOBAL.accelerations;
-  GLOBAL.accelerations = inv(GLOBAL.M)*(GLOBAL.external_load_effective - GLOBAL.T_int);
+  GLOBAL.accelerations(BC.hostdof(:,1)) = inv(GLOBAL.M)*(GLOBAL.external_load_effective(BC.hostdof(:,1)) - GLOBAL.T_int(BC.hostdof(:,1)));
   GLOBAL.NetForce = (GLOBAL.external_load_effective - GLOBAL.T_int);
   
 % step 10 second partial update of nodal velocities
@@ -312,7 +309,6 @@ while(Time<tMax)
   GLOBAL.velocities = velocities_half + (t_np1 - t_nphalf) * GLOBAL.accelerations;  
 %      |-/
 %      Update v/a of embedded nodes (if there are any)  
-%           if ~isempty(FEM(1).mesh.embedded) || ~isempty(FEM(2).mesh.embedded)
           if EmbedElt == 1
               [GEOM.x,GLOBAL.velocities, GLOBAL.accelerations ] = update_embedded_displacements_explicit(BC.tiedof, BC.tienodes,...
                     FEM,GEOM, GLOBAL.velocities, GLOBAL.accelerations); 

@@ -1,12 +1,9 @@
 %--------------------------------------------------------------------------
 % Computes the element vector of global internal forces 
 %--------------------------------------------------------------------------
-function [T_internal,counter,PLAST,geomJn_1,VolRate,Cauchy,epsilon,CauchyTensor] = element_force_truss(...
-          properties,x_local,X_local,FEM,PLAST,counter,GEOM,DAMPING,dt)  
+function [T_internal,PLAST,geomJn_1,VolRate,Cauchy,epsilon,CauchyTensor] = element_force_truss(...
+          properties,x_local,X_local,PLAST,GEOM,DAMPING,dt)  
       
-      %%%%%
-      ielement = 1;
-      %%%%%%
 rho   = properties(1);
 E     = properties(2);
 nu    = properties(3);
@@ -23,8 +20,7 @@ lam = (E*nu/((1+nu)*(1-2*nu))); mu = E/(2*(1+nu));
 L       = norm(X_local(:,2) - X_local(:,1));  
 dx      = x_local(:,2) - x_local(:,1);        
 l       = norm(dx);                           
-n       = dx/l;                               
-V       = area*L;                             
+n       = dx/l;                                                           
 lambda  = l/L;                                
 epsilon = log(lambda);
 

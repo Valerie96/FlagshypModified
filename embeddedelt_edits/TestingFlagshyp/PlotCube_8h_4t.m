@@ -1,7 +1,7 @@
 %% Flagshyp 1 vs Flagshyp 2 vs Flagshyp 3 Energy
 clear; close all; clc;
 
-file1="Cube_8h_0t";
+file1="Cube_8h_4t";
 name1 = "Flagshyp No Truss";
 
 file2="embed_2h_1t";
@@ -10,8 +10,9 @@ name2 = "Flagshyp Uncorrected";
 file3="embed_2h_1t_correct";
 name3 = "Flagshyp Corrected";
 
-FLAG_1 = ReadFlagshypOutputFile(file1,'jf', 181,1); 
-% FLAG_2 = ReadFlagshypOutputFile(file2,'jf', 82,1);
+FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
+FLAG_2=FLAG_1; FLAG_3=FLAG_1;
+% FLAG_2 = ReadFlagshypOutputFile(file2,'jf', 82,1);_Compression
 % FLAG_3 = ReadFlagshypOutputFile(file3,'jf', 83,1);
 
 % PlotEnergy3([FLAG_1.Etime, FLAG_1.KE], [FLAG_2.Etime, FLAG_2.KE],[FLAG_3.Etime, FLAG_3.KE], name1, name2,name3,'Kinetic Energy')
@@ -105,9 +106,10 @@ legend('show');
 
 suffix = '_PureShear';
 suffix = '_Compression';
+suffix = '';
 
-[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('FlagshypCube_8h_0t',suffix));
-[AbqEHost, AbqETruss, AbqE]  = ReadAbaqus_excel(strcat('FlagshypCube_8h_4t',suffix));
+[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('Abaqus_xlsx/FlagshypCube_8h_0t',suffix));
+[AbqEHost, AbqETruss, AbqE]  = ReadAbaqus_excel(strcat('Abaqus_xlsx/FlagshypCube_8h_4t',suffix));
 
 graphsize=[100 100 800 400];
 name1a = "Abaqus Solid 8h";
@@ -133,6 +135,11 @@ PlotEnergy5([AbqEOne.time, AbqEOne.KE],[AbqE.time, AbqE.KE], [FLAG_1.Etime, FLAG
 PlotEnergy5([AbqEOne.time, AbqEOne.IE],[AbqE.time, AbqE.IE], [FLAG_1.Etime, FLAG_1.IE], [FLAG_2.Etime, FLAG_2.IE],[FLAG_3.Etime, FLAG_3.IE], name1a, name2a,name1, name2,name3,'Internal Energy')
 PlotEnergy5([AbqEOne.time, -AbqEOne.WK],[AbqE.time, -AbqE.WK],[FLAG_1.Etime, FLAG_1.WK], [FLAG_2.Etime, FLAG_2.WK],[FLAG_3.Etime, FLAG_3.WK],  name1a, name2a,name1, name2,name3,'External Work')
 PlotEnergy5([AbqEOne.time, AbqEOne.ETOTAL],[AbqE.time, AbqE.ETOTAL], [FLAG_1.Etime, FLAG_1.ET], [FLAG_2.Etime, FLAG_2.ET],[FLAG_3.Etime, FLAG_3.ET], name1a, name2a,name1, name2,name3,'Total Energy')
+
+% FLAG_VD3 = ReadFlagshypOutputFileViscDisp(file3);
+% PlotEnergy5([AbqEOne.time, AbqEOne.VD], [FLAG_1.Etime, FLAG_1.VD],[FLAG_2.Etime, FLAG_2.VD],[FLAG_VD3.Etime, FLAG_VD3.VD], name1a, name2a,name1, name2,name3,'Viscous Dissipation')
+PlotEnergy3([AbqEOne.time, AbqEOne.VD],[AbqE.time, AbqE.VD], [FLAG_2.Etime, FLAG_2.VD], name1a, name2a,name2,'Viscous Dissipation')
+
 
 IEerror_0t = abs(AbqEOne.IE(end) - FLAG_1.IE(end))/AbqEOne.IE(end)
 IEerror_1t = abs(AbqE.IE(end) - FLAG_2.IE(end))/AbqE.IE(end)
@@ -390,4 +397,17 @@ function PlotEnergy5(Data1, Data2, Data3, Data4,Data5, Name1, Name2,Name3,Name4,
     title(Title);
     ylabel('Energy(J)')
     xlabel('Time (s)')
+end
+
+function [FLAG] = ReadFlagshypOutputFileViscDisp(name)
+basedir=strcat('C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edits/job_folder/',name);
+f = strcat(basedir,'/VDenergy.dat');
+file=fopen(f,'r');
+formatSpec = '%e %e';
+sizeA = [2 inf ];
+TKIE = fscanf(file,formatSpec,sizeA);
+fclose(file);
+
+FLAG.Etime =  TKIE(1,:)';
+FLAG.VD    =  TKIE(2,:)';
 end

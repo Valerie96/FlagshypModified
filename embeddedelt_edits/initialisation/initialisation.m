@@ -3,13 +3,13 @@
 % and equivalent force vector, excluding pressure components.
 %----------------------------------------------------------------------
 function [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS] = ...
-         initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt)
+         initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt,VolumeCorrect)
 %--------------------------------------------------------------------------    
 % Initialisation of internal variables for plasticity.
 %--------------------------------------------------------------------------    
 
 %|-/ 
-GEOM.element_num = zeros(3,GEOM.total_n_elets); nel=0;
+GEOM.element_num = zeros(3,GEOM.total_n_elets);
 %|-/
 
 for i = 1:FEM(1).n_elet_type
@@ -108,11 +108,8 @@ if(Explicit == 1)
     if (EmbedElt == 1)
         GEOM = inverse_mapping(GEOM,FEM,BC.tienodes);
         
-%         if VolumeCorrect
-            [GLOBAL] = effective_mass_assembly(GEOM,MAT,FEM,GLOBAL,QUADRATURE);
-%         else
-%             [GLOBAL] = lumped_mass_assembly(GEOM,MAT,FEM,GLOBAL,QUADRATURE);
-%         end
+        [GLOBAL] = effective_mass_assembly(GEOM,MAT,FEM,GLOBAL,QUADRATURE,VolumeCorrect);
+        GLOBAL.M = GLOBAL.M(BC.hostdof(:,1),BC.hostdof(:,1));
 
 
     else

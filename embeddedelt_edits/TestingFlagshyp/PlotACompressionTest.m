@@ -248,6 +248,11 @@ file1="ACIAttwoodCompression-1_1000Fibers7_discritized";
 name1f = "FlagshypACI";
 FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
 
+
+file1="ACISpeed1AttwoodCompression-1_1000Fibers7_discritized";
+name2f = "FlagshypACI-SpeedUpdate1";
+FLAG_2 = ReadFlagshypOutputFile(file1,'jf'); 
+
 suffix = ' ';
 
 [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat("AttwoodCompression-1_1000Fibers5",suffix));
@@ -265,10 +270,12 @@ boundnodes=[1 2 3 4 5 6 7 8 9 10 51 52 53 54 55 56 57 58 59 60 101 102 103 104 1
 Abn=find(AbqOneHost.nodes==boundnodes(1));
 AbRF = AbqOneHost.RF(:,3,Abn);
 FRF = FLAG_1.RF(:,3,boundnodes(1));
+FRF2 = FLAG_2.RF(:,3,boundnodes(1));
 for i=2:length(boundnodes)
     Abn=find(AbqOneHost.nodes==boundnodes(i));
     AbRF = AbRF+AbqOneHost.RF(:,3,Abn);
     FRF = FRF+FLAG_1.RF(:,3,boundnodes(i));
+    FRF2 = FRF2+FLAG_2.RF(:,3,boundnodes(i));
 end
 
 t0=1E-3;
@@ -300,6 +307,15 @@ PlotEnergy([AbqEOne.time, AbqEOne.IE],[FLAG_1.Etime, FLAG_1.IE], name1a, name1f,
 PlotEnergy([AbqEOne.time, -AbqEOne.WK],[FLAG_1.Etime, FLAG_1.WK], name1a, name1f, 'Compression - External Work')
 PlotEnergy([AbqEOne.time, AbqEOne.ETOTAL],[FLAG_1.Etime, FLAG_1.ET], name1a, name1f, 'Compression - Total Energy')
 
+%%
+PlotEnergy3([AbqEOne.time, AbqEOne.KE],[FLAG_1.Etime, FLAG_1.KE],[FLAG_2.Etime, FLAG_2.KE], name1a, name1f,name2f,'Compression - Kinetic Energy')
+PlotEnergy3([AbqEOne.time, AbqEOne.IE],[FLAG_1.Etime, FLAG_1.IE], [FLAG_2.Etime, FLAG_2.IE], name1a, name1f,name2f, 'Compression - Internal Energy')
+PlotEnergy3([AbqEOne.time, -AbqEOne.WK],[FLAG_1.Etime, FLAG_1.WK], [FLAG_2.Etime, FLAG_2.WK], name1a, name1f,name2f,'Compression - External Work')
+PlotEnergy3([AbqEOne.time, AbqEOne.ETOTAL],[FLAG_1.Etime, FLAG_1.ET],[FLAG_2.Etime, FLAG_2.ET], name1a, name1f,name2f,'Compression - Total Energy')
+%%
+file1="ACIAttwoodCompression-1_1000Fibers7_discritized";
+FLAG_VD1 = ReadFlagshypOutputFileViscDisp(file1);
+PlotEnergy3([AbqEOne.time, AbqEOne.VD],[FLAG_VD1.Etime, FLAG_VD1.VD], [FLAG_2.Etime, FLAG_2.VD], name1a, name1f,name2f, 'Compression - Viscous Dissipation')
 %% Function Defs
 
 function PlotEnergy(Data1, Data2, Name1, Name2,Title)
@@ -340,7 +356,7 @@ function PlotEnergy5(Data1, Data2, Data3, Data4,Data5, Name1, Name2,Name3,Name4,
 end
 
 function [FLAG] = ReadFlagshypOutputFileViscDisp(name)
-basedir=strcat('C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/job_folder/',name);
+basedir=strcat('C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edits/job_folder/',name);
 f = strcat(basedir,'/VDenergy.dat');
 file=fopen(f,'r');
 formatSpec = '%e %e';

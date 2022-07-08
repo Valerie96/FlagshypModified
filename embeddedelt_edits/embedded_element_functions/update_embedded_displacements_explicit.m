@@ -2,10 +2,7 @@
 %  Update coodinates of embedded element displacements.
 %--------------------------------------------------------------------------
 
-%Variables passed in from code
-%GEOM.x = update_embedded_displacements_explicit(BC.tiedof, BC.tienodes,...
-%                 FEM.mesh,GEOM); 
-            
+%Variables passed in from code            
 function [x,v,a]       = update_embedded_displacements_explicit(tiedof,...
                     tienodes,FEM,GEOM,v,a)
 mesh = FEM(2).mesh;
@@ -17,7 +14,6 @@ mesh = FEM(2).mesh;
     %coordinatess
     dim = GEOM.ndime;
     dof = mesh.dof_nodes;
-    x0 = GEOM.x0;
     x = GEOM.x;
     Ze = GEOM.embedded.Embed_Zeta;
     TieXUpdate = zeros(mesh.n_dofs,1);
@@ -29,21 +25,47 @@ mesh = FEM(2).mesh;
     for i=1:length(tienodes)
         m=tienodes(i);
 
-
         %Get the current coordinates of the host element
         host = GEOM.embedded.NodeHost(m);        %host element number
         host_nn=FEM(1).mesh.connectivity(:,host); %nodes of host element
         host_xn = x(:,host_nn);            %nodal coordinates of embedded elet in host
+        host_dof = dof(:, host_nn);
+
+        %Get shape function values at embedded node location
+        N=shape_function_values_at(Ze(:,m),'hexa8')';
 
         %Calculate interpolated displacment values at embedded node location
-        XeUpdate=find_xyz_in_host(Ze(:,m), host_xn);
+%         XeUpdate=find_xyz_in_host(Ze(:,m), host_xn);
+         XeUpdate=N*host_xn';
+        
+        %Round machine zero results to actual zero
+        for j=1:length(XeUpdate)
+            if abs(XeUpdate(j)) < 1E-12
+                XeUpdate(j)=0;
+            end
+        end
         
         %Calculate interpolated velocity values
-        host_dof = dof(:, host_nn);
-        V_Update = find_xyz_in_host(Ze(:,m),v(host_dof));
+%         V_Update = find_xyz_in_host(Ze(:,m),v(host_dof));
+         V_Update=N*v(host_dof)';
+        
+        %Round machine zero results to actual zero
+        for j=1:length(V_Update)
+            if abs(V_Update(j)) < 1E-12
+                V_Update(j)=0;
+            end
+        end
         
         %Calculate interpolated acceleration values
-        A_Update = find_xyz_in_host(Ze(:,m),a(host_dof));
+%         A_Update = find_xyz_in_host(Ze(:,m),a(host_dof));
+         A_Update=N*a(host_dof)';
+        
+        %Round machine zero results to actual zero
+        for j=1:length(A_Update)
+            if abs(A_Update(j)) < 1E-12
+                A_Update(j)=0;
+            end
+        end
         
         %Fill TieUpdate with new xyz locations
         TieXUpdate((m-1)*dim+(1:dim)) = XeUpdate;
@@ -55,6 +77,5 @@ mesh = FEM(2).mesh;
     v(tiedof) = TieVUpdate(tiedof);
     a(tiedof) = TieAUpdate(tiedof);
 %|-/
-
 
 end

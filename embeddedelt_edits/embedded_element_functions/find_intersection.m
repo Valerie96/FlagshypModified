@@ -84,22 +84,4 @@ d = d/(truss_line'*plane_normal);
 p = Lo + truss_line*d;
 
 
-
-%Find natural coordinates of the intersection in each host element
-% h1_nodenums = zeros(1,4);
-% h2_nodenums = zeros(1,4);
-% for i=1:4
-%     node = SharedFace(i);
-%     for j=1:8
-%         if h1_connect(j) == node
-%             h1_nodenums(i) = j;
-%         end
-%         if h2_connect(j) == node
-%             h2_nodenums(i) = j;
-%         end
-%     end
-% end
-
-
-
 end

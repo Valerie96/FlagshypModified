@@ -2,10 +2,7 @@
 % Computes and assemble lumped mass matrix. Mass Correct gives the option
 % to remove redundant mass from the system when using embedded elements.
 %--------------------------------------------------------------------------
-function [GLOBAL] = effective_mass_assembly(GEOM,MAT,FEM,GLOBAL,QUADRATURE)   
-
-
-global VolumeCorrect;
+function [GLOBAL] = effective_mass_assembly(GEOM,MAT,FEM,GLOBAL,QUADRATURE,VolumeCorrect)   
 
 %number of dimensions
 ndims = GEOM.ndime; 
@@ -41,7 +38,6 @@ for ii=1:FEM(1).mesh.nelem
 
     %b: calculate element mass
     me = rho * Ve;
-    
     
     %c: Loop over embedded elements
     mf_tot = 0; mc =0; 
@@ -141,7 +137,7 @@ for jj=1:FEM(2).mesh.nelem
                     
                     %g: scatter mass matrix to global 
                     global_dof = FEM(2).mesh.dof_nodes(:,global_nodes_f);
-                    LumpedMass_eff(global_dof,global_dof) = LumpedMass_eff(global_dof,global_dof) + Me;
+%                     LumpedMass_eff(global_dof,global_dof) = LumpedMass_eff(global_dof,global_dof) + Me;
                     LumpedMass_act(global_dof,global_dof) = LumpedMass_act(global_dof,global_dof) + Me;
 end
 

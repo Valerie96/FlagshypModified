@@ -1,14 +1,11 @@
-%Plot a curved shape from Abaqus
-%but with a lot of assumptions
-%
-%6/29/22
+%Code to add embedded truss elements to an Abaqus Part via input file
+%generation
+%"Cleaned up version"
+%Valerie Martin
+%Feb 21, 2022
 
-%To use, create a curved plate model as you want it in Abaqus with 
-%everything you want except for the embedded elements. Dimentions should 
-%be in meters
-
-%The plate should be made by creating a rectangle with two curved sides and
-%then extruding that shape to make a plate
+%To use, create a model as you want it in Abaqus with everything you want
+%except for the embedded elements. Dimentions should be in meters
 
 %A node set of the outside nodes of the part must be definied in the
 %assembly.
@@ -28,41 +25,88 @@
 
 
 %LIMITATIONS
-%PART must be oriented so that z+ is the through thickness direction
+%PART must have one face on the plane z=0 in the assembly
 %Creates alternating layers of 0/90 fibers in the xy plane, stacking 
 %direction z+
 
+
+%To do
+   %Add Option to switch to uniaxial fibers
+   %Add recognition of multiple element types per part (wedge, tet)
+   %Try to make a method for randomly oriented fibers 
+   %Curved fibers
+   %Decide on actual sizes for dyneema truss elements
+
+%% User Input
 clear; clc; close all;
 tic
+OriginalINP = "INPfiles/BeamBendTest.inp";
+PartName = "Beam";
+OutsideNSetName = "nset=Outside"; 
+% 
+NewINP = "BeamBendTest_Fibers.inp";    %-Coarse
 
-OriginalINP="INPfiles/CurvedTest3.inp";
-PartName="CurvedTest";
-NewINP="CurvedTest3_Fibers.inp";
+OriginalINP = "INPfiles/AttwoodCompression-1.inp";
+PartName = "L7";
+OutsideNSetName = "nset=Outside"; 
+% 
+NewINP = "AttwoodCompression-1_1000Fibers7_discritized.inp";    %-Coarse
+
+OriginalINP = "INPfiles/RussellTensile-Half.inp";
+PartName = "Gauge";
+OutsideNSetName = "nset=Outside"; 
+% 
+NewINP = "RussellTensile-1_5_5000Fibers7_discritized.inp";    %-Coarse
+
+% OriginalINP = "INPfiles/DyneemaDiskQuarter_thin.inp";
+% PartName = "TargetPlate";
+% OutsideNSetName = "nset=AllOutside"; 
+% 
+% NewINP = "DyneemaClampedThin_1000Fibers.inp";
+% % 
+% OriginalINP = "INPfiles/KarthikeyanPlate_cae.inp";
+% PartName = "TargetPlate";
+% OutsideNSetName = "nset=AllOutside"; 
+% 
+% NewINP = "KarthikeyanPlate_1000Fibers_singlelayer.inp";
+% 
+OriginalINP = "INPfiles/FlagshypCube_8h_0t.inp";
+PartName = "Cube";
+OutsideNSetName = "nset=CubeOut"; 
+
+NewINP = "Cube_8h_t.inp";
 
 %Plot part in MATLAB for diganostics
-PLOT=true;
+PLOT=false;
 
 %Fiber Material (must be a material definied in Abaqus cae)
-Fmat = "FIBERS";
+Fmat = "Fibers";
 
 %Create an all with self contact definition
 ALLSELFCONTACT=false;
 InteractionProperty="IntProp-1";
 
 %Truss Mesh Density (nodes/length)
-meshseed = 0.1;
+meshseed = 0.25;
 
 %Set number of points per row
-nptsx = 10;
-nptsy = 10;
+nptsx = 20;
+nptsy = 20;
+
+%Cross sectional Area of truss element
+TArea = 7.85398E-7*1000;
+TDia = 2*sqrt(TArea/pi());
+
+%Distance between Trusses and Distance Between Layers (of Truss Elements)
+DBT = 0.001*5;
 
 %Option to enter actual fiber size and number of fibers represented per
 %truss and have matlab calculate the rest
 %Actual Fiber size
 Fact=17E-6;
-
+Fact=17E-3;
 % Number of fibers per truss element
-FpT = 500000;
+FpT = 200;
 
     %Calculate Truss area
     TArea = FpT*0.25*pi()*Fact^2;
@@ -71,149 +115,41 @@ FpT = 500000;
     DBT = TDia;% + TDia/6;
     DBL = DBT;
 PlyThickness=60E-6;
-LayersPerPly = PlyThickness/TDia;
+LayersPerPly = PlyThickness/TDia
 %End User Input
 %% Code Stuff
 
 %Read Data from Abaqus INP file
-[Elements,Nodes,Outside]=ReadINP(OriginalINP,PartName,"Outside");
+[Elements,Nodes,Outside]=ReadINP(OriginalINP,PartName,OutsideNSetName);
+
+%Create Point Cloud
+[PointCloudX, PointCloudY,distx,disty,Xbound,Ybound,Zbound] = CreatePointCloud(Outside,DBT,nptsx,nptsy);
 
 %Create Surfaces from the part mesh
 [PartSurf]=CreatePartSurface(Elements,Outside);
 
-%Find the corners and top point of the curved plate
-[Ztop,CornerNodes]=FindBoundsAndCorners(Outside);
-
-%Plot curved plate shape, along with identified corner points
-figure, hold on, view(3), grid on
-patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor','g','FaceAlpha',0.2);
-xlabel("x");
-ylabel("y");
-zlabel("z");
-plot3(Ztop(:,2),Ztop(:,3),Ztop(:,4),'kx')
-plot3(CornerNodes(:,2),CornerNodes(:,3),CornerNodes(:,4),'bx')
-hold off;
-%%
-%Find the plate arc lengths. This will be the length of the plate in flat
-%space Use Corner Nodes 5 and 6, Top node 1
-a=CornerNodes(5,2)-CornerNodes(1,2); b=CornerNodes(5,4)-CornerNodes(1,4);
-h=sqrt(a^2+b^2);
-
-%The top an bottom of the plate have different arc lengths, so the
-%calculations are repeated for each
-CordLength_top=CornerNodes(6,2)-CornerNodes(5,2);
-CordHight_top=Ztop(1,4)-CornerNodes(6,4);
-ArcRadius_top=CordLength_top^2/(8*CordHight_top)+CordHight_top/2;
-ArcLength_top=2*ArcRadius_top*asin(CordLength_top/(2*ArcRadius_top));
-L=ArcLength_top/2;
-
-CordLength_bottom=CornerNodes(2,2)-CornerNodes(1,2);
-CordHight_bottom=Ztop(1,4)-h-CornerNodes(2,4);
-ArcRadius_bottom=CordLength_bottom^2/(8*CordHight_bottom)+CordHight_bottom/2;
-ArcLength_bottom=2*ArcRadius_bottom*asin(CordLength_bottom/(2*ArcRadius_bottom));
-L2=ArcLength_bottom/2;
-
-ArcCenter_top=[Ztop(1,2),Ztop(1,3),Ztop(1,4)-ArcRadius_top];
-ArcCenter_bottom=[Ztop(1,2),Ztop(1,3),Ztop(1,4)-h-ArcRadius_bottom];
-ArcCenter=ArcCenter_top;
-
-%The "Nodes" used to map from flat to curved space are the four corners of
-%the flat plate
-Xe=CornerNodes(:,2:4);
-
-%Create the plate in Flat Space
-%Set coordinates of flat rectangle node points
-w=(CornerNodes(3,3)-CornerNodes(2,3))/2;
-x1=[-L,-w,-h/2]; x5=[-L,-w, h/2];
-x2=[ L,-w,-h/2]; x6=[ L,-w, h/2];
-x3=[ L, w,-h/2]; x7=[ L, w, h/2];
-x4=[-L, w,-h/2]; x8=[-L, w, h/2];
-xe=[x1;x2;x3;x4;x5;x6;x7;x8];
-
-Surf=[1,2,6,5;2,3,7,6;3,4,8,7;4,1,5,8;4,3,2,1;5,6,7,8];
-    FlatSurf=(zeros(size(Surf,1),3));
-
-    for i=1:size(Surf,1)
-        j=1+(i-1)*2;
-       FlatSurf(j,:)=Surf(i,1:3);
-       FlatSurf(j+1,:)=[Surf(i,3), Surf(i,4), Surf(i,1)];
-    end
-
-
-%Add fibers in flat space using a point cloud created in Flat Space
-Xbound=[-L,L]; Ybound=[-w,w]; Zbound=[-h/2,h/2];
-[PointCloudX,PointCloudY,distx,disty] = CreatePointCloud(Xbound,Ybound,Zbound,DBT,nptsx,nptsy);
-
-%Plot the mesh shape and point cloud in Flat Space
-PlotMeshShape(xe,Outside,FlatSurf,PointCloudX,PointCloudY,PLOT);
+%Plot mesh shape
+PlotMeshShape(Nodes,Outside,PartSurf,PointCloudX,PointCloudY,PLOT)
 
 %Determine Point Cloud Points that are outside the part
-    XIN=inpolyhedron(FlatSurf,xe,PointCloudX);
-    YIN=inpolyhedron(FlatSurf,xe,PointCloudY);
+    XIN=inpolyhedron(PartSurf,Nodes(:,2:4),PointCloudX);
+    YIN=inpolyhedron(PartSurf,Nodes(:,2:4),PointCloudY);
+
+% [XXIN]=DetermineOutsidePoints(Nodes,Elements,PointCloudX,PointCloudY);
+% %Plot comparision between XIN and XXIN 
+% PlotXXIN(Nodes,Outside,PartSurf,PointCloudX,PointCloudY,XIN,YIN,XXIN,PLOT)
 
 % Identify End points of nodes
 [EndpointsX,EndpointsY]=FindTrussEndpoints(PointCloudX,PointCloudY,XIN,YIN,distx,disty);
 
 % Plot Truss Points (in and out) and Endpoints, Plot Truss lines inside Part
-PlotTrussPoints(xe,FlatSurf,EndpointsX,EndpointsY,PLOT)
+PlotTrussPoints(Nodes,PartSurf,EndpointsX,EndpointsY,PLOT)
 
 % Mesh the truss elements
 [NodesX,NodesY,totalNodes,numXnodes,numYnodes]=MeshTrussElements(Xbound,Ybound,EndpointsX,EndpointsY,meshseed);
 
-%% Map Flat Space Truss Nodes to Curved Space
-CurvedNodesX=NodesX;
-CurvedNodesY=NodesY;
-
-
-for i=1:size(CurvedNodesX,1)
-    for j=1:3:size(CurvedNodesX,2)
-        N=ShapeFunctions(NodesX(i,j:j+2),L,w,h);
-        CurvedNodesX(i,j:j+2)=N*Xe;
-
-        r1=ArcRadius_top*(1/2+NodesX(i,j+2)/h)-ArcRadius_bottom*(NodesX(i,j+2)/h-1/2);
-        z1=sqrt(r1^2-(CurvedNodesX(i,j)-ArcCenter(1))^2)+ArcCenter(3);
-        CurvedNodesX(i,j+2)=z1;
-    end
-end
-
-for i=1:size(CurvedNodesY,1)
-    for j=1:3:size(CurvedNodesY,2)
-        N=ShapeFunctions(NodesY(i,j:j+2),L,w,h);
-        CurvedNodesY(i,j:j+2)=N*Xe;
-
-        r1=ArcRadius_top*(1/2+NodesY(i,j+2)/h)-ArcRadius_bottom*(NodesY(i,j+2)/h-1/2);
-        z1=sqrt(r1^2-(CurvedNodesY(i,j)-ArcCenter(1))^2)+ArcCenter(3);
-        CurvedNodesY(i,j+2)=z1;
-    end
-end
-
-lx=size(CurvedNodesX,2);
-ly=size(CurvedNodesY,2);
-
-% Plot mesh for visulization of density
-figure, hold on, view(3), grid on
-lightGrey1   = [0.85 0.85 0.85];
-patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor',lightGrey1,'FaceAlpha',0.2);
-plot3(CurvedNodesX(:,[1:3:lx]),CurvedNodesX(:,[2:3:lx]),CurvedNodesX(:,[3:3:lx]),'bo');
-plot3(CurvedNodesY(:,[1:3:ly]),CurvedNodesY(:,[2:3:ly]),CurvedNodesY(:,[3:3:ly]),'go');
-for i=1:size(CurvedNodesX,1)
-    for j=1:3:(size(CurvedNodesX,2)-3)
-        plot3([CurvedNodesX(i,j) CurvedNodesX(i,j+3)]', [CurvedNodesX(i,j+1) CurvedNodesX(i,j+4)]', [CurvedNodesX(i,j+2) CurvedNodesX(i,j+5)]','b');
-    end
-end
-for i=1:size(CurvedNodesY,1)
-    for j=1:3:(size(CurvedNodesY,2)-3)
-        plot3([CurvedNodesY(i,j) CurvedNodesY(i,j+3)]', [CurvedNodesY(i,j+1) CurvedNodesY(i,j+4)]', [CurvedNodesY(i,j+2) CurvedNodesY(i,j+5)]','g');
-    end
-end
-% zlim([-0.04,0.6]);
-title("Truss Element Mesh Density");
-xlabel("x");
-ylabel("y");
-zlabel("z");
-
 % Write New INP File
-[numXelts,numYelts]=WriteInputFile(OriginalINP,NewINP,Fmat,TArea,ALLSELFCONTACT,CurvedNodesX,CurvedNodesY,numXnodes,numYnodes);
+[numXelts,numYelts]=WriteInputFile(OriginalINP,NewINP,Fmat,TArea,ALLSELFCONTACT,NodesX,NodesY,numXnodes,numYnodes);
 
 toc
 fprintf("Total number of Truss nodes: %u\n", totalNodes);
@@ -221,17 +157,19 @@ fprintf("Total number of Truss elements: %u\n", numXelts+numYelts);
 fprintf("Total number of nodes: %u\n", totalNodes+size(Nodes,1));
 fprintf("Total number of elements: %u\n\n", numXelts+numYelts+size(Elements,1));
 
-%% Functions
+%%
 function [Elements,Nodes,Outside]=ReadINP(OriginalINP,PartName,OutsideNSetName)
+
 %Open text file and read data  
+   
 %Check if file exists and opens sucessfully
    if ~isfile(OriginalINP)
        fprintf("%s Not Found\n", OriginalINP);
-   end
+   else
     fid = fopen(OriginalINP,'r');
         if fid < 0
             %disp('Error')
-            fprintf("%s Not Found\n", OriginalINP);
+            fprintf("%s fid<0\n", OriginalINP);
             quit;
         else
             
@@ -293,8 +231,9 @@ function [Elements,Nodes,Outside]=ReadINP(OriginalINP,PartName,OutsideNSetName)
             x = R*x';
             Nodes(j,2:4) = x' + rotvec(1,:);
         end
-            
-            %Find Outside Surface Node Set
+
+
+        %Find Outside Surface Node Set
             while ~contains(tline, OutsideNSetName)
                 tline = fgetl(fid);
             end
@@ -333,20 +272,19 @@ function [Elements,Nodes,Outside]=ReadINP(OriginalINP,PartName,OutsideNSetName)
                 for jj = 1:length(Outside)
                     Outside(jj,:)=Nodes(Outside(jj,1),:);
                 end
+            
             %Close the inp file
             fclose(fid);
 
         end
+   end 
 end
 
-function [Ztop,CornerNodes]=FindBoundsAndCorners(Outside)
-
-%Find the 8 corners of the plate
-%first find part bounds
+function [TrussXX,TrussYY,distx,disty,Xbound,Ybound,Zbound] = CreatePointCloud(Outside,DBT,nptsx,nptsy)
+   %Calculate Part Bounds
     Xbound = [0, 0];
     Ybound = [0, 0];
     Zbound = [0, 0];
-
     for i=1:length(Outside(:,1))
         if Outside(i,2)>Xbound(2)
             Xbound(2) = Outside(i,2);
@@ -366,98 +304,7 @@ function [Ztop,CornerNodes]=FindBoundsAndCorners(Outside)
             Zbound(1) = Outside(i,4);
         end
     end
-    
-    %Find the nodes that touch these bounds
-    %Right now this will only work for this one specific orientation of the
-    %part with respect to the global axis, but this is proof of concept so
-    %it's ok for now
-    Ztop=zeros(2,4);
-    CornerNodes=zeros(8,4);
-    xave=(Xbound(1)+Xbound(2))/2;
-    for i=1:length(Outside(:,1))
 
-        if Outside(i,2)==Xbound(2)
-            if Outside(i,3)==Ybound(2)
-                CornerNodes(7,:)=Outside(i,:);
-            elseif Outside(i,3)==Ybound(1)
-                CornerNodes(6,:)=Outside(i,:);
-            end
-
-        elseif Outside(i,2)==Xbound(1)
-            if Outside(i,3)==Ybound(2)
-                CornerNodes(8,:)=Outside(i,:);
-            elseif Outside(i,3)==Ybound(1)
-                CornerNodes(5,:)=Outside(i,:);
-            end
-        end
-
-        if Outside(i,4)==Zbound(2)
-            if Outside(i,3)==Ybound(2)
-                Ztop(1,:)=Outside(i,:);
-            elseif Outside(i,3)==Ybound(1)
-                Ztop(2,:)=Outside(i,:);
-            end
-
-        elseif Outside(i,4)==Zbound(1)
-            if Outside(i,3)==Ybound(2)
-                if Outside(i,2)>xave
-                    CornerNodes(3,:)=Outside(i,:);
-                else
-                    CornerNodes(4,:)=Outside(i,:);
-                end
-            elseif Outside(i,3)==Ybound(1)
-                if Outside(i,2)>xave
-                    CornerNodes(2,:)=Outside(i,:);
-                else
-                    CornerNodes(1,:)=Outside(i,:);
-                end
-            end
-        end
-    end
-end
-
-function [PartSurf]=CreatePartSurface(Elements,Nodes)
-
-% Rearrange node connectivies to create faces instead of elements 
-%For C3D8, each element has 6 surfaces, but not all are unique
- 
-    Surfaces = zeros(size(Elements,1)*6,4);
-    for i=1:size(Elements,1)
-        j=1+(i-1)*6;
-        Surfaces(j,:)=[Elements(i,5), Elements(i,4), Elements(i,3), Elements(i,2)];
-        Surfaces(j+1,:)=[Elements(i,2), Elements(i,6), Elements(i,9), Elements(i,5)];
-        Surfaces(j+2,:)=[Elements(i,2), Elements(i,3), Elements(i,7), Elements(i,6)];
-        Surfaces(j+3,:)=Elements(i,6:9);
-        Surfaces(j+4,:)=[Elements(i,3), Elements(i,4), Elements(i,8), Elements(i,7)];
-        Surfaces(j+5,:)=[Elements(i,4), Elements(i,5), Elements(i,9), Elements(i,8)];
-    end
-
-        %Divide Faces into triangles
-        PartSurf=(zeros(size(Surfaces,1),3));
-    
-        for i=1:size(Surfaces,1)
-            j=1+(i-1)*2;
-           PartSurf(j,:)=Surfaces(i,1:3);
-           PartSurf(j+1,:)=[Surfaces(i,3), Surfaces(i,4), Surfaces(i,1)];
-        end
-        
-end
-
-function [N]=ShapeFunctions(x,l,w,h)
-    t=h/2; s=1/(8*l*w*t); 
-    N1 = -s*(x(1)-l)*(x(2)-w)*(x(3)-t);
-    N2 =  s*(x(1)+l)*(x(2)-w)*(x(3)-t);
-    N3 = -s*(x(1)+l)*(x(2)+w)*(x(3)-t);
-    N4 =  s*(x(1)-l)*(x(2)+w)*(x(3)-t);
-    N5 =  s*(x(1)-l)*(x(2)-w)*(x(3)+t);
-    N6 = -s*(x(1)+l)*(x(2)-w)*(x(3)+t);
-    N7 =  s*(x(1)+l)*(x(2)+w)*(x(3)+t);
-    N8 = -s*(x(1)-l)*(x(2)+w)*(x(3)+t);
-    N=[N1 N2 N3 N4 N5 N6 N7 N8];
-end
-
-function [TrussXX,TrussYY,distx,disty] = CreatePointCloud(Xbound,Ybound,Zbound,DBT,nptsx,nptsy)
-   
 %Create Point Cloud for Fiber Layers based on the X and Y boundaries
 
 %Trusses with their axies aligned perpedicular to the x axis (ie each truss
@@ -531,10 +378,64 @@ function [TrussXX,TrussYY,distx,disty] = CreatePointCloud(Xbound,Ybound,Zbound,D
 
 end
 
+function [Face3]=CreatePartSurface(Elements,Outside)
+% Rearrange node connectivies to create faces instead of elements 
+%For C3D8, each element has 6 surfaces, but not all are unique
+%But who cares we're only interested in the outside surfaces, which we know
+%because of the outside node set
+ 
+    Surfaces = zeros(size(Elements,1)*6,4);
+    for i=1:size(Elements,1)
+        j=1+(i-1)*6;
+        Surfaces(j,:)=[Elements(i,5), Elements(i,4), Elements(i,3), Elements(i,2)];
+        Surfaces(j+1,:)=[Elements(i,2), Elements(i,6), Elements(i,9), Elements(i,5)];
+        Surfaces(j+2,:)=[Elements(i,2), Elements(i,3), Elements(i,7), Elements(i,6)];
+        Surfaces(j+3,:)=Elements(i,6:9);
+        Surfaces(j+4,:)=[Elements(i,3), Elements(i,4), Elements(i,8), Elements(i,7)];
+        Surfaces(j+5,:)=[Elements(i,4), Elements(i,5), Elements(i,9), Elements(i,8)];
+    end
+
+    %Find the surfaces that contain only outside nodes and add them to
+    %OutsideSurfaces
+    
+    %Loop through Surfaces. For each suface (i) check if every element (j)
+    %is also in Outside. If one element is not part of Outside, the surface
+    %is not an outside face
+        OutSurface=logical(zeros(size(Surfaces,1),1));
+        for i=1:size(Surfaces,1)
+           for j=1:4
+               Out=false;
+               for k=1:size(Outside,1)
+                  if Surfaces(i,j)==Outside(k,1)
+                      Out=true;
+                  end               
+               end
+
+               if Out==false
+                   break;
+               end           
+           end
+           OutSurface(i,1)=Out;
+        end
+    
+    %Create a smaller matrix of only outside surfaces (faces)
+        Face4=Surfaces(OutSurface(:,1)',:);
+
+    %Divide Faces into triangles
+        Face3=(zeros(size(Face4,1),3));
+    
+        for i=1:size(Face4,1)
+            j=1+(i-1)*2;
+           Face3(j,:)=Face4(i,1:3);
+           Face3(j+1,:)=[Face4(i,3), Face4(i,4), Face4(i,1)];
+        end
+
+end
+
 function PlotMeshShape(Nodes,Outside,PartSurf,PointCloudX,PointCloudY,PLOT)
     if PLOT
         figure, hold on, view(3), grid on
-        patch('Vertices',Nodes, 'Faces', PartSurf ,'FaceColor','g','FaceAlpha',0.2);
+        patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor','g','FaceAlpha',0.2);
         for i=1:size(PointCloudX,1)
             plot3(PointCloudX(i,1), PointCloudX(i,2), PointCloudX(i,3), 'b.');
         end     
@@ -548,12 +449,120 @@ function PlotMeshShape(Nodes,Outside,PartSurf,PointCloudX,PointCloudY,PLOT)
 %         zlim([0 0.005]);
         hold off
 
-%         figure, hold on, view(3), grid on
-%             for i=1:size(Outside,1)
-%                 plot3(Outside(i,2), Outside(i,3), Outside(i,4), 'k.');
-%             end
-%         title("Outside Suface Nodes");
-%         hold off
+        figure, hold on, view(3), grid on
+            for i=1:size(Outside,1)
+                plot3(Outside(i,2), Outside(i,3), Outside(i,4), 'k.');
+            end
+        title("Outside Suface Nodes");
+        hold off
+    end
+end
+
+function [XXIN]=DetermineOutsidePoints(Nodes,Elements,PointCloudX,PointCloudY)
+ % Determine truss points that are outside the part using that function I
+ % wrote
+ 
+ % We'll move this to a function eventually
+ %Loop throgh truss points
+ %  Find the 4 elements who's centroids are closest to the current point
+ %  Check if the point is in any of those 4
+ %      if inside one, set IN(point) = true; continue to next point
+ %      if it's not in any of those 4, assume it is not in the part at all,
+ 
+ %Calculate the centroid of every element and find max element length le
+ n_elt = size(Elements,1);
+ centroids = zeros(n_elt,3);
+ le = 0;
+ for i=1:n_elt
+     %Get the coordinates of the element nodes
+     xn = Nodes(Elements(i,2:9),2:4);
+     centroids(i,:) = [mean(xn(:,1)) mean(xn(:,2)) mean(xn(:,3))];
+ 
+     %Calculate characteristic element length
+     [l,lei] = calc_element_size(xn,'C3D8');
+     if lei>le
+         le=lei;
+     end
+     
+ end
+
+ %Initialize IN
+ XXIN=false(size(PointCloudX,1),1);
+ T_host=zeros(size(PointCloudX,1),1);
+ countave=0;
+ 
+ for tn = 1:size(PointCloudX,1)
+  p = PointCloudX(tn,:);
+  count=0;
+     for i=1:n_elt
+         d=sqrt((p(1)-centroids(i,1))^2 + (p(2)-centroids(i,2))^2 + (p(3)-centroids(i,3))^2);
+
+         if d <= 0.8*le
+            count=count+1;
+            xn = Nodes(Elements(i,2:9),2:4);
+            inel = point_in_hexahedron(p,xn');
+            if inel == true
+                XXIN(tn)=true;
+                T_host(tn) = i;
+                break;
+            end
+
+         end
+
+     end
+     countave=countave+count;
+ end
+ countave=countave/size(PointCloudX,1);
+
+end
+
+function PlotXXIN(Nodes,Outside,PartSurf,TrussXX,TrussYY,XIN,YIN,XXIN,PLOT)
+%% Plot shape with truss points that are in (blue) or out (red)
+    if PLOT
+    figure, hold on, view(3), grid on
+        plot3(TrussXX(XIN,1), TrussXX(XIN,2), TrussXX(XIN,3), 'bo');
+        plot3(TrussYY(YIN,1), TrussYY(YIN,2), TrussYY(YIN,3), 'bo');
+        plot3(TrussXX(~XIN,1), TrussXX(~XIN,2), TrussXX(~XIN,3), 'ro');
+        plot3(TrussYY(~YIN,1), TrussYY(~YIN,2), TrussYY(~YIN,3), 'ro');
+        xlabel("x");
+        ylabel("y");
+        zlabel("z");
+        title("Point Identification using Inpolyhedron");
+%         xlim([-0.11 0.11]);
+%         ylim([-0.11,0.11]);
+%         zlim([0 0.005]);
+    patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor','k','FaceAlpha',0.1,'LineWidth',.5);
+    for i=1:size(Outside,1)
+        plot3(Outside(i,2), Outside(i,3), Outside(i,4), 'k.');
+    end
+    hold off;
+
+    figure, hold on, view(3), grid on
+        plot3(TrussXX(XXIN,1), TrussXX(XXIN,2), TrussXX(XXIN,3), 'bo');
+        plot3(TrussXX(~XXIN,1), TrussXX(~XXIN,2), TrussXX(~XXIN,3), 'ro');
+        xlabel("x");
+        ylabel("y");
+        zlabel("z");
+        title("Point Identification using my Search Code");
+%         xlim([-0.11 0.11]);
+%         ylim([-0.11,0.11]);
+        zlim([0 0.005]);
+        patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor','k','FaceAlpha',0.1,'LineWidth',.5);
+        for i=1:size(Outside,1)
+            plot3(Outside(i,2), Outside(i,3), Outside(i,4), 'k.');
+        end
+    hold off;
+    
+        wrong=zeros(length(XXIN),1);
+        next=1;
+        disp(isequal(XIN,XXIN));
+        for i=1:length(XXIN)
+           if ~isequal(XIN(i),XXIN(i))
+               wrong(next)=i;
+               next=next+1;
+           end
+            
+        end
     end
 end
 
@@ -611,7 +620,7 @@ end
 function PlotTrussPoints(Nodes,PartSurf,EndpointsX,EndpointsY,PLOT)
     if PLOT
        figure, hold on, view(3), grid on
-       patch('Vertices',Nodes, 'Faces', PartSurf ,'FaceColor','k','FaceAlpha',0.1);
+       patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor','k','FaceAlpha',0.1);
             plot3(EndpointsX(:,1), EndpointsX(:,2), EndpointsX(:,3), 'bs');
             plot3(EndpointsX(:,4), EndpointsX(:,5), EndpointsX(:,6), 'bs');
             plot3(EndpointsY(:,1), EndpointsY(:,2), EndpointsY(:,3), 'gs');
@@ -646,8 +655,8 @@ function [NodesX,NodesY,totalNodes,numXnodes,numYnodes]=MeshTrussElements(Xbound
         Nxmax=int16(((Ybound(2)-Ybound(1))/meshseed))+2;
         Nymax=int16(((Xbound(2)-Xbound(1))/meshseed))+2;
     
-        NodesX=zeros(size(EndpointsX,1),3*Nxmax);
-        NodesY=zeros(size(EndpointsY,1),3*Nymax);
+        NodesX=zeros(size(EndpointsX,1),3*Nxmax+1);
+        NodesY=zeros(size(EndpointsY,1),3*Nymax+1);
     
     
     %Loop through the list of endpoints and add them and the other mesh nodes
@@ -672,9 +681,7 @@ function [NodesX,NodesY,totalNodes,numXnodes,numYnodes]=MeshTrussElements(Xbound
     
            NodesX(i,j:j+2)=EndpointsX(i,4:6);
            numXnodes=numXnodes+1;
-           %Assign any remaining places to NaN
-           len_end = size(NodesX(i,j+3:end));
-           NodesX(i,j+3:end)=NaN(len_end);
+           NodesX(i,j+3:end)=NaN(1, 3*Nxmax-(j+1));
         end
     
     %Loop through the list of endpoints and add them and the other mesh nodes
@@ -699,24 +706,18 @@ function [NodesX,NodesY,totalNodes,numXnodes,numYnodes]=MeshTrussElements(Xbound
     
            NodesY(i,j:j+2)=EndpointsY(i,4:6);
            numYnodes=numYnodes+1;
-           len_end = size(NodesY(i,j+3:end));
-           NodesY(i,j+3:end)=NaN(len_end);
+           NodesY(i,j+3:end)=NaN(1, 3*Nymax-(j+1));
         end
     
         totalNodes=numXnodes+numYnodes;
-
-%         NodesX = NodesX(:,all(~isnan(NodesX)));
-        lx=size(NodesX,2);
-%         NodesY = NodesY(:,all(~isnan(NodesY)));
-        ly=size(NodesY,2);
 
     % Plot mesh for visulization of density
 
     figure, hold on, view(3), grid on
     plot3([EndpointsX(:,1) EndpointsX(:,4)]', [EndpointsX(:,2) EndpointsX(:,5)]', [EndpointsX(:,3) EndpointsX(:,6)]','b');
     plot3([EndpointsY(:,1) EndpointsY(:,4)]', [EndpointsY(:,2) EndpointsY(:,5)]', [EndpointsY(:,3) EndpointsY(:,6)]','g');
-    plot3(NodesX(:,[1:3:lx]),NodesX(:,[2:3:lx]),NodesX(:,[3:3:lx]),'bo');
-    plot3(NodesY(:,[1:3:ly]),NodesY(:,[2:3:ly]),NodesY(:,[3:3:ly]),'go');
+    plot3(NodesX(:,[1:3:Nxmax*3]),NodesX(:,[2:3:Nxmax*3]),NodesX(:,[3:3:Nxmax*3]),'bo');
+    plot3(NodesY(:,[1:3:Nymax*3]),NodesY(:,[2:3:Nymax*3]),NodesY(:,[3:3:Nymax*3]),'go');
     title("Truss Element Mesh Density");
     xlabel("x");
     ylabel("y");

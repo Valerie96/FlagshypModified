@@ -141,6 +141,14 @@
           0.,           0.,           0.,           1.,           0.,           0.,          90.
 *End Instance
 **  
+*Nset, nset=Outside, instance=CurvedTest-1, generate
+  1,  84,   1
+*Elset, elset=Outside, instance=CurvedTest-1, generate
+  1,  30,   1
+*Nset, nset=HOST, instance=CurvedTest-1, generate
+  1,  84,   1
+*Elset, elset=HOST, instance=CurvedTest-1, generate
+  1,  30,   1
 *Nset, nset=SimpleSupport, instance=CurvedTest-1
  43, 49, 50, 56, 57, 63, 64, 70, 71, 77, 78, 84
 *Elset, elset=SimpleSupport, instance=CurvedTest-1

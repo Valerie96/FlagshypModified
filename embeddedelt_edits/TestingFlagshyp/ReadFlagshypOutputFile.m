@@ -8,10 +8,10 @@
 function [FLAG] = ReadFlagshypOutputFile(name,folder)
 
 if strcmp(folder,"jf")
-    basedir=strcat('C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/job_folder/',name);
+    basedir=strcat('C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edits/job_folder/',name);
     file = strcat(basedir,'/', name, '-OUTPUT.txt');
 else
-    basedir=strcat('C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/TestingFlagshyp/',folder,'/',name);  %basedir=strcat(pwd,'\', folder)
+    basedir=strcat('C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edits/TestingFlagshyp/',folder,'/',name);  %basedir=strcat(pwd,'\', folder)
     file = strcat(basedir,'/', name, '-OUTPUT.txt');
 end 
 
@@ -119,16 +119,38 @@ FLAG.TrussLE = Strain2;
 set(0,'defaultfigurecolor',[1 1 1]);
 f = strcat(basedir,'/energy.dat');
 file=fopen(f,'r');
-formatSpec = '%e %e %e %e';
-sizeA = [4 inf ];
-TKIE = fscanf(file,formatSpec,sizeA);
-fclose(file);
 
-FLAG.Etime =  TKIE(1,:)';
-FLAG.KE    =  TKIE(2,:)';
-FLAG.IE    =  TKIE(3,:)';
-FLAG.WK    = -TKIE(4,:)';
-FLAG.ET    = (TKIE(2,:) + TKIE(3,:) - TKIE(4,:))';
+tline=fgetl(file);
+num=count(tline,"e");
+frewind(file)
+
+if num==4
+    formatSpec = '%e %e %e %e';
+    sizeA = [4 inf ];
+    TKIE = fscanf(file,formatSpec,sizeA);
+    fclose(file);
+    
+    FLAG.Etime =  TKIE(1,:)';
+    FLAG.KE    =  TKIE(2,:)';
+    FLAG.IE    =  TKIE(3,:)';
+    FLAG.WK    = -TKIE(4,:)';
+    FLAG.ET    = (TKIE(2,:) + TKIE(3,:) - TKIE(4,:))';
+
+elseif num==5
+    formatSpec = '%e %e %e %e %e';
+    sizeA = [5 inf ];
+    TKIE = fscanf(file,formatSpec,sizeA);
+    fclose(file);
+    
+    FLAG.Etime =  TKIE(1,:)';
+    FLAG.KE    =  TKIE(2,:)';
+    FLAG.IE    =  TKIE(3,:)';
+    FLAG.WK    = -TKIE(4,:)';
+    FLAG.VD    =  TKIE(5,:)';
+%     FLAG.ET    = (TKIE(2,:) + TKIE(3,:) - TKIE(4,:) + TKIE(5,:))';
+    FLAG.ET    = (TKIE(2,:) + TKIE(3,:) - TKIE(4,:))';
+
+end
 
 
 %%
@@ -197,9 +219,11 @@ function [numbers,n_nodes,nodeinfo1,nodeinfo2,nelttype,n_elt,npts,...
 
         switch eltype
             case 'hexa8'
-                 for i = 1:n_elt(xx)
-                    trash = fgetl(fid);
-                 end
+                if contains(trash,"1 ")
+                     for i = 1:n_elt(xx)
+                        trash = fgetl(fid);
+                     end
+                end
                 for i = 1:n_elt(xx)
                    for j = 1:npts(xx)
                     text = fgetl(fid);
@@ -208,9 +232,11 @@ function [numbers,n_nodes,nodeinfo1,nodeinfo2,nelttype,n_elt,npts,...
                    trash = fgetl(fid);
                 end
             case 'truss2'
-                 for i = 1:n_elt(xx)
-                    trash = fgetl(fid);
-                 end       
+                if contains(trash,"1 ")
+                     for i = 1:n_elt(xx)
+                        trash = fgetl(fid);
+                     end   
+                end
                  for i = 1:n_elt(xx)
                      text = fgetl(fid); 
                     eltinfo2(i,:) = sscanf(text, "%f %*c %*c %f"); 

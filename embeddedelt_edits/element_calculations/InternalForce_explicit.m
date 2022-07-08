@@ -2,10 +2,10 @@
 % Computes the element vector of global internal forces and the tangent
 % stiffness matrix. 
 %--------------------------------------------------------------------------
-function [T_internal,counter,PLAST_element,geomJn_1,VolRate,f_damp] = ...
+function [T_internal,PLAST_element,geomJn_1,VolRate,f_damp] = ...
           InternalForce_explicit(ielement,FEM,xlocal,x0local,...
           element_connectivity,Ve,QUADRATURE,properties,CONSTANT,GEOM,...
-          matyp,PLAST,counter,KINEMATICS,MAT,GlobT_int,DAMPING,dt)
+          matyp,PLAST,KINEMATICS,MAT,DAMPING,VolumeCorrect,dt)
       
 dim=GEOM.ndime;
 
@@ -50,8 +50,7 @@ for igauss=1:QUADRATURE(1).element.ngauss
     % Obtain stresses (for incompressible or nearly incompressible, 
     % only deviatoric component) and internal variables in plasticity.
     %----------------------------------------------------------------------    
-    [Cauchy,PLAST,...
-     ~] = Cauchy_type_selection(kinematics_gauss,properties,...
+    [Cauchy,~,~] = Cauchy_type_selection(kinematics_gauss,properties,...
                                           CONSTANT,dim,matyp,PLAST,igauss);
     %----------------------------------------------------------------------
     % Elasticity tensor is not used in explicit analysis
@@ -60,7 +59,7 @@ for igauss=1:QUADRATURE(1).element.ngauss
     %----------------------------------------------------------------------
     % Add pressure contribution to stresses and elasticity tensor.
     %----------------------------------------------------------------------    
-    [Cauchy,c] = mean_dilatation_pressure_addition(Cauchy,c,CONSTANT,pressure,matyp);    
+    [Cauchy,~] = mean_dilatation_pressure_addition(Cauchy,c,CONSTANT,pressure,matyp);    
     
     %----------------------------------------------------------------------
     % Calculate bulk viscosity damping
@@ -95,19 +94,18 @@ end
     geomJn_1=J;
     VolRate = eps_dot;
 
-
     
 %--------------------------------------------------------------------------
 % Compute conttribution (and extract relevant information for subsequent
 % assembly) of the mean dilatation term (Kk) of the stiffness matrix.
 %--------------------------------------------------------------------------
-switch matyp
-    case {5,7,17}         
-         [indexi,indexj,global_stiffness,...
-          counter] = mean_dilatation_volumetric_matrix(FEM,dim,...
-          element_connectivity,DN_x_mean,counter,indexi,indexj,...
-          global_stiffness,kappa_bar,ve);
-end 
+% switch matyp
+%     case {5,7,17}         
+%          [indexi,indexj,global_stiffness,...
+%           counter] = mean_dilatation_volumetric_matrix(FEM,dim,...
+%           element_connectivity,DN_x_mean,counter,indexi,indexj,...
+%           global_stiffness,kappa_bar,ve);
+% end 
 
 %|-/
 % Embedded Elt, Internal force modification, if this element has any
@@ -129,8 +127,8 @@ if GEOM.embedded.HostTotals(ielement,2) > 0
         if node_flag(1) + node_flag(2) >= 1
             
             T_internal = TrussCorrectedInternalForce_explicit(ielement,...
-                           T_internal,FEM,QUADRATURE,GEOM,GlobT_int,...
-                           PLAST,KINEMATICS,MAT,DAMPING,eelt,node_flag);
+                           T_internal,FEM,QUADRATURE,GEOM,...
+                           PLAST,KINEMATICS,MAT,DAMPING,VolumeCorrect,eelt,node_flag);
             elt_search = elt_search + 1;    
               
               if elt_search >= GEOM.embedded.HostTotals(ielement,2)
@@ -143,6 +141,7 @@ end
 %--------------------------------------------------------------------------
 % Store internal variables.
 %--------------------------------------------------------------------------
-PLAST_element = PLAST;
+% PLAST_element = PLAST;
+PLAST_element=[];
 end
 

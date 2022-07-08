@@ -7,8 +7,7 @@
 %everything you want except for the embedded elements. Dimentions should 
 %be in meters
 
-%The plate should be made by creating a rectangle with two curved sides and
-%then extruding that shape to make a plate
+%The plate should be made by creating a 
 
 %A node set of the outside nodes of the part must be definied in the
 %assembly.
@@ -28,19 +27,19 @@
 
 
 %LIMITATIONS
-%PART must be oriented so that z+ is the through thickness direction
+%PART must have one face on the plane z=0 in the assembly
 %Creates alternating layers of 0/90 fibers in the xy plane, stacking 
 %direction z+
 
 clear; clc; close all;
 tic
 
-OriginalINP="INPfiles/CurvedTest3.inp";
+OriginalINP="INPfiles/CurvedTest.inp";
 PartName="CurvedTest";
-NewINP="CurvedTest3_Fibers.inp";
+NewINP="CurvedTest_Fibers.inp";
 
 %Plot part in MATLAB for diganostics
-PLOT=true;
+PLOT=false;
 
 %Fiber Material (must be a material definied in Abaqus cae)
 Fmat = "FIBERS";
@@ -84,23 +83,15 @@ LayersPerPly = PlyThickness/TDia;
 %Find the corners and top point of the curved plate
 [Ztop,CornerNodes]=FindBoundsAndCorners(Outside);
 
-%Plot curved plate shape, along with identified corner points
-figure, hold on, view(3), grid on
-patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor','g','FaceAlpha',0.2);
-xlabel("x");
-ylabel("y");
-zlabel("z");
 plot3(Ztop(:,2),Ztop(:,3),Ztop(:,4),'kx')
 plot3(CornerNodes(:,2),CornerNodes(:,3),CornerNodes(:,4),'bx')
 hold off;
-%%
+
 %Find the plate arc lengths. This will be the length of the plate in flat
 %space Use Corner Nodes 5 and 6, Top node 1
 a=CornerNodes(5,2)-CornerNodes(1,2); b=CornerNodes(5,4)-CornerNodes(1,4);
 h=sqrt(a^2+b^2);
 
-%The top an bottom of the plate have different arc lengths, so the
-%calculations are repeated for each
 CordLength_top=CornerNodes(6,2)-CornerNodes(5,2);
 CordHight_top=Ztop(1,4)-CornerNodes(6,4);
 ArcRadius_top=CordLength_top^2/(8*CordHight_top)+CordHight_top/2;
@@ -117,11 +108,8 @@ ArcCenter_top=[Ztop(1,2),Ztop(1,3),Ztop(1,4)-ArcRadius_top];
 ArcCenter_bottom=[Ztop(1,2),Ztop(1,3),Ztop(1,4)-h-ArcRadius_bottom];
 ArcCenter=ArcCenter_top;
 
-%The "Nodes" used to map from flat to curved space are the four corners of
-%the flat plate
 Xe=CornerNodes(:,2:4);
 
-%Create the plate in Flat Space
 %Set coordinates of flat rectangle node points
 w=(CornerNodes(3,3)-CornerNodes(2,3))/2;
 x1=[-L,-w,-h/2]; x5=[-L,-w, h/2];
@@ -140,12 +128,11 @@ Surf=[1,2,6,5;2,3,7,6;3,4,8,7;4,1,5,8;4,3,2,1;5,6,7,8];
     end
 
 
-%Add fibers in flat space using a point cloud created in Flat Space
-Xbound=[-L,L]; Ybound=[-w,w]; Zbound=[-h/2,h/2];
+%Add fibers in flat space
+Xbound=[-L,L]; Ybound=[-w,w]; Zbound=[-h/2,h/2]; 
 [PointCloudX,PointCloudY,distx,disty] = CreatePointCloud(Xbound,Ybound,Zbound,DBT,nptsx,nptsy);
-
-%Plot the mesh shape and point cloud in Flat Space
 PlotMeshShape(xe,Outside,FlatSurf,PointCloudX,PointCloudY,PLOT);
+
 
 %Determine Point Cloud Points that are outside the part
     XIN=inpolyhedron(FlatSurf,xe,PointCloudX);
@@ -160,16 +147,16 @@ PlotTrussPoints(xe,FlatSurf,EndpointsX,EndpointsY,PLOT)
 % Mesh the truss elements
 [NodesX,NodesY,totalNodes,numXnodes,numYnodes]=MeshTrussElements(Xbound,Ybound,EndpointsX,EndpointsY,meshseed);
 
-%% Map Flat Space Truss Nodes to Curved Space
+%%
 CurvedNodesX=NodesX;
 CurvedNodesY=NodesY;
-
-
 for i=1:size(CurvedNodesX,1)
     for j=1:3:size(CurvedNodesX,2)
         N=ShapeFunctions(NodesX(i,j:j+2),L,w,h);
         CurvedNodesX(i,j:j+2)=N*Xe;
 
+%         n1=1/2+NodesX(i,j+2)/h
+%         n2=NodesX(i,j+2)/h-1/2
         r1=ArcRadius_top*(1/2+NodesX(i,j+2)/h)-ArcRadius_bottom*(NodesX(i,j+2)/h-1/2);
         z1=sqrt(r1^2-(CurvedNodesX(i,j)-ArcCenter(1))^2)+ArcCenter(3);
         CurvedNodesX(i,j+2)=z1;
@@ -181,16 +168,20 @@ for i=1:size(CurvedNodesY,1)
         N=ShapeFunctions(NodesY(i,j:j+2),L,w,h);
         CurvedNodesY(i,j:j+2)=N*Xe;
 
+%         n1=1/2+NodesY(i,j+2)/h
+%         n2=NodesY(i,j+2)/h-1/2
         r1=ArcRadius_top*(1/2+NodesY(i,j+2)/h)-ArcRadius_bottom*(NodesY(i,j+2)/h-1/2);
         z1=sqrt(r1^2-(CurvedNodesY(i,j)-ArcCenter(1))^2)+ArcCenter(3);
         CurvedNodesY(i,j+2)=z1;
     end
 end
 
+
 lx=size(CurvedNodesX,2);
 ly=size(CurvedNodesY,2);
 
 % Plot mesh for visulization of density
+
 figure, hold on, view(3), grid on
 lightGrey1   = [0.85 0.85 0.85];
 patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor',lightGrey1,'FaceAlpha',0.2);
@@ -213,7 +204,7 @@ ylabel("y");
 zlabel("z");
 
 % Write New INP File
-[numXelts,numYelts]=WriteInputFile(OriginalINP,NewINP,Fmat,TArea,ALLSELFCONTACT,CurvedNodesX,CurvedNodesY,numXnodes,numYnodes);
+WriteInputFile(OriginalINP,NewINP,Fmat,TArea,ALLSELFCONTACT,CurvedNodesX,CurvedNodesY,numXnodes,numYnodes);
 
 toc
 fprintf("Total number of Truss nodes: %u\n", totalNodes);
@@ -440,6 +431,12 @@ function [PartSurf]=CreatePartSurface(Elements,Nodes)
            PartSurf(j,:)=Surfaces(i,1:3);
            PartSurf(j+1,:)=[Surfaces(i,3), Surfaces(i,4), Surfaces(i,1)];
         end
+
+        figure, hold on, view(3), grid on
+        patch('Vertices',Nodes(:,2:4), 'Faces', PartSurf ,'FaceColor','g','FaceAlpha',0.2);
+        xlabel("x");
+        ylabel("y");
+        zlabel("z");
         
 end
 
