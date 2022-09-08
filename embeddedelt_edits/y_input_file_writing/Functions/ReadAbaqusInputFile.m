@@ -200,7 +200,7 @@ PART(2)=PART(1);
                         ELSET(n_Elset).elements = fscanf(fid, "%u%*c ",[1, inf]);
                     end
                 else
-                    fprintf('wtf Read Abaqus line 203 not Nset or Elset\n');
+                    fprintf('wtf ReadAbaqusInputFile.m, line 203, not Nset or Elset\n');
                 end
                 tline = fgetl(fid);
 

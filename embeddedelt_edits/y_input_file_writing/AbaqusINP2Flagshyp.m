@@ -12,8 +12,8 @@
 
 clear; clc; close all; 
 
-OriginalINP = "Cube_8h_16t.inp";
-NewINP = "Cube_8h_16t.dat";   
+OriginalINP = "SmallTension_Speed_Fibers.inp";
+NewINP = "SmallTension_Speed.dat";   
 
 % OriginalINP = "RussellTensile-1-5_5000Fibers7_discritized.inp";
 % NewINP = "RussellTensile-1-5_5000Fibers7_discritized.dat";

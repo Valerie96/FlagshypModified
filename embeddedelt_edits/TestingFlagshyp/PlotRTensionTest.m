@@ -234,13 +234,13 @@ legend('show');
 
 
 %% Data vs Flagshyp and Abaqus
-file1="ACIRussellTensile-1-5_5000Fibers7_discritized";
+file1="ACISpeed2RussellTensile-1-5_5000Fibers7_discritized";
 name1f = "ACIRussellTensile-1-5_5000Fibers7_discritized";
 FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
 
 suffix = ' ';
 
-[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('RussellTension-1-5_5000Fibers5',suffix));
+[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('Abaqus_xlsx/RussellTension-1-5_5000Fibers5',suffix));
 %Russell Tensile 1-5 Nodes: 660, 1261 Elements: 420, 410
 Abq420=80; Abq410=70; Abq660=150; Abq1261=181;
 
@@ -263,6 +263,12 @@ end
 
 l0=50E-3;
 A0=(4E-3)*(6E-3);
+
+%%
+PlotEnergy([AbqEOne.time, AbqEOne.KE],[FLAG_1.Etime, FLAG_1.KE], name1a, name1f, 'Tension - Kinetic Energy')
+PlotEnergy([AbqEOne.time, AbqEOne.IE],[FLAG_1.Etime, FLAG_1.IE], name1a, name1f, 'Tension - Internal Energy')
+PlotEnergy([AbqEOne.time, -AbqEOne.WK],[FLAG_1.Etime, FLAG_1.WK], name1a, name1f, 'Tension - External Work')
+PlotEnergy([AbqEOne.time, AbqEOne.ETOTAL],[FLAG_1.Etime, FLAG_1.ET], name1a, name1f, 'Tension - Total Energy')
 %%
 figure();
 hold on; grid on;

@@ -1,11 +1,11 @@
 %% Data vs Flagshyp and Abaqus
-file1="ACISpeed1RussellTensile-Half_5000Fibers7_discritized";
+file1="ACISpeed2RussellTensile-Half_5000Fibers7_discritized";
 name1f = "FlagshypACI";
 FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
 
 suffix = ' ';
 
-[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('RussellTensile-Half_5000Fibers7_discritized',suffix));
+[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('Abaqus_xlsx/RussellTensile-Half_5000Fibers7_discritized',suffix));
 %Russell Tensile 1-5 Nodes: 53, 640 Elements: 181
 Abq53=23; Abq640=100; Abq181=1;
 

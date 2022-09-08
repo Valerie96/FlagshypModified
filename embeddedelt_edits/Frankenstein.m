@@ -7,13 +7,13 @@ basedir_fem='C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edit
 % inputfile='multi-test_2h_2t.dat';
 % inputfile='explicit_3D_EShear_longtime.dat';
 % inputfile = 'RussellTensile-Half_5000Fibers7_discritized.dat';
-inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
-inputfile = 'Cube_8h_4t.dat';
+% inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
+inputfile = 'SmallTension_Speed.dat';
 
 DAMPING.b1 = 0.04; %Linear bulk viscosity damping
 DAMPING.b2 = 1.2; %Quadratic bulk viscosity damping
 prefactor = 0.7;%0.75;
-outputfreq = 10;
+outputfreq = 500;
 ansmlv='y'; 
 
 vtuOn = 0;

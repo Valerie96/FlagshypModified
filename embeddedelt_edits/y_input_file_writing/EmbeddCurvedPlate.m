@@ -35,9 +35,9 @@
 clear; clc; close all;
 tic
 
-OriginalINP="INPfiles/CurvedTest3.inp";
+OriginalINP="INPfiles/CurvedTest.inp";
 PartName="CurvedTest";
-NewINP="CurvedTest3_Fibers.inp";
+NewINP="CurvedTest_Fibers.inp";
 
 %Plot part in MATLAB for diganostics
 PLOT=true;
@@ -170,8 +170,8 @@ for i=1:size(CurvedNodesX,1)
         N=ShapeFunctions(NodesX(i,j:j+2),L,w,h);
         CurvedNodesX(i,j:j+2)=N*Xe;
 
-        r1=ArcRadius_top*(1/2+NodesX(i,j+2)/h)-ArcRadius_bottom*(NodesX(i,j+2)/h-1/2);
-        z1=sqrt(r1^2-(CurvedNodesX(i,j)-ArcCenter(1))^2)+ArcCenter(3);
+        rz=ArcRadius_top*(1/2+NodesX(i,j+2)/h)-ArcRadius_bottom*(NodesX(i,j+2)/h-1/2);
+        z1=sqrt(rz^2-(CurvedNodesX(i,j)-ArcCenter(1))^2)+ArcCenter(3);
         CurvedNodesX(i,j+2)=z1;
     end
 end
@@ -181,8 +181,8 @@ for i=1:size(CurvedNodesY,1)
         N=ShapeFunctions(NodesY(i,j:j+2),L,w,h);
         CurvedNodesY(i,j:j+2)=N*Xe;
 
-        r1=ArcRadius_top*(1/2+NodesY(i,j+2)/h)-ArcRadius_bottom*(NodesY(i,j+2)/h-1/2);
-        z1=sqrt(r1^2-(CurvedNodesY(i,j)-ArcCenter(1))^2)+ArcCenter(3);
+        rz=ArcRadius_top*(1/2+NodesY(i,j+2)/h)-ArcRadius_bottom*(NodesY(i,j+2)/h-1/2);
+        z1=sqrt(rz^2-(CurvedNodesY(i,j)-ArcCenter(1))^2)+ArcCenter(3);
         CurvedNodesY(i,j+2)=z1;
     end
 end

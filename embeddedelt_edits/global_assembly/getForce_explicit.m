@@ -48,7 +48,8 @@ k=1;
     elt_type        = FEM(k).mesh.element_type;
 
 
-    parfor ielet=1:FEM(k).mesh.nelem
+    %parfor ielet=1:FEM(k).mesh.nelem
+    for ielet=1:FEM(k).mesh.nelem
     temp_globalT_int = zeros(size(Tint,1),1); 
     temp_globalvdamp = zeros(size(Tint,1),1); 
     

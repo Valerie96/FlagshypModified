@@ -198,8 +198,8 @@ legend('show');
 %% Data vs Embedded Abaqus, various fiber bundles
 suffix = ['1','2','3','4','5'];
 suffix = ["12Fibers5";"100Fibers5";"1000Fibers5"];
-suffix = ["12Fibers5";"12Fibers5-singlelayer";"12Fibers5-doublelayer"];
-suffix = ["12Fibers5-singlelayer";"12Fibers5-doublelayer";"100Fibers7-singlelayer";"100Fibers7-doublelayer"];
+% suffix = ["12Fibers5";"12Fibers5-singlelayer";"12Fibers5-doublelayer"];
+% suffix = ["12Fibers5-singlelayer";"12Fibers5-doublelayer";"100Fibers7-singlelayer";"100Fibers7-doublelayer"];
 
 %Attwood Compression 1 - Compare nodes 460, elements 149
 Abq460=190; Abq149=41;
@@ -219,8 +219,8 @@ plot(Ex_Strain,Ex_Stress,'k','DisplayName',name1,'LineWidth',4)
 
 for j=1:length(suffix)
 
-%     [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('AttwoodCompression-1_12Fibers',suffix(j)));
-    [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('AttwoodCompression-1_',suffix(j,:)));
+%     [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('Abaqus_xlsx/AttwoodCompression-1_12Fibers',suffix(j)));
+    [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat('Abaqus_xlsx/AttwoodCompression-1_',suffix(j,:)));
     name1a = strcat("Abaqus Embedded Element Ver. ",suffix(j));
     
     boundnodes=[1 2 3 4 5 6 7 8 9 10 51 52 53 54 55 56 57 58 59 60 101 102 103 104 105 106 107 108 109 110 151 152 153 154 155 156 157 158 159 160 201 202 203 204 205 206 207 208 209 210 251 252 253 254 255 256 257 258 259 260 301 302 303 304 305 306 307 308 309 310 351 352 353 354 355 356 357 358 359 360 401 402 403 404 405 406 407 408 409 410 451 452 453 454 455 456 457 458 459 460];
@@ -240,8 +240,8 @@ end
 title("Compressive Stress vs Strain");
 xlabel("Strain (m/m)");
 ylabel("Stress (MPa)");
-xlim([0 0.15]);
-legend('show');
+xlim([0 0.3]);
+% legend('show');
 
 %%  Data vs Flagshyp and Abaqus
 file1="ACIAttwoodCompression-1_1000Fibers7_discritized";
@@ -253,9 +253,13 @@ file1="ACISpeed1AttwoodCompression-1_1000Fibers7_discritized";
 name2f = "FlagshypACI-SpeedUpdate1";
 FLAG_2 = ReadFlagshypOutputFile(file1,'jf'); 
 
+file1="ACISpeed2AttwoodCompression-1_1000Fibers7_discritized";
+name3f = "FlagshypACI-SpeedUpdate2";
+FLAG_3 = ReadFlagshypOutputFile(file1,'jf'); 
+
 suffix = ' ';
 
-[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat("AttwoodCompression-1_1000Fibers5",suffix));
+[AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat("Abaqus_xlsx/AttwoodCompression-1_1000Fibers5",suffix));
 %Attwood Compression 1 - Compare nodes 460, elements 149
 Abq460=190; Abq149=41;
 
@@ -271,11 +275,13 @@ Abn=find(AbqOneHost.nodes==boundnodes(1));
 AbRF = AbqOneHost.RF(:,3,Abn);
 FRF = FLAG_1.RF(:,3,boundnodes(1));
 FRF2 = FLAG_2.RF(:,3,boundnodes(1));
+FRF3 = FLAG_3.RF(:,3,boundnodes(1));
 for i=2:length(boundnodes)
     Abn=find(AbqOneHost.nodes==boundnodes(i));
     AbRF = AbRF+AbqOneHost.RF(:,3,Abn);
     FRF = FRF+FLAG_1.RF(:,3,boundnodes(i));
     FRF2 = FRF2+FLAG_2.RF(:,3,boundnodes(i));
+    FRF3 = FRF3+FLAG_3.RF(:,3,boundnodes(i));
 end
 
 t0=1E-3;
@@ -287,10 +293,11 @@ hold on; grid on;
 plot(Ex_Strain,Ex_Stress,'k','DisplayName',name1,'LineWidth',4)
 plot(-AbqOneHost.U(:,3,Abq460)/t0,-AbRF*10^-6/A0,'bo','DisplayName',name1a);
 plot(-FLAG_1.Disp(:,3,460)/t0,-FRF*10^-6/A0,'b','DisplayName',name1f,'LineWidth',3);
+plot(-FLAG_3.Disp(:,3,460)/t0,-FRF3*10^-6/A0,'r','DisplayName',name1f,'LineWidth',2);
 title(strcat("Compressive Stress vs Strain",suffix));
 xlabel("Compressive Strain (m/m)");
 ylabel("Stress (MPa)");
-xlim([0 0.15]);
+xlim([0 0.3]);
 legend('show');
 
 figure();
@@ -312,6 +319,12 @@ PlotEnergy3([AbqEOne.time, AbqEOne.KE],[FLAG_1.Etime, FLAG_1.KE],[FLAG_2.Etime, 
 PlotEnergy3([AbqEOne.time, AbqEOne.IE],[FLAG_1.Etime, FLAG_1.IE], [FLAG_2.Etime, FLAG_2.IE], name1a, name1f,name2f, 'Compression - Internal Energy')
 PlotEnergy3([AbqEOne.time, -AbqEOne.WK],[FLAG_1.Etime, FLAG_1.WK], [FLAG_2.Etime, FLAG_2.WK], name1a, name1f,name2f,'Compression - External Work')
 PlotEnergy3([AbqEOne.time, AbqEOne.ETOTAL],[FLAG_1.Etime, FLAG_1.ET],[FLAG_2.Etime, FLAG_2.ET], name1a, name1f,name2f,'Compression - Total Energy')
+%%
+name1f = "FlagshypACI-NoSpeedUpdate";
+PlotEnergy4([AbqEOne.time, AbqEOne.KE],[FLAG_1.Etime, FLAG_1.KE],[FLAG_2.Etime, FLAG_2.KE],[FLAG_3.Etime, FLAG_3.KE], name1a, name1f,name2f,name3f,'Compression - Kinetic Energy')
+PlotEnergy4([AbqEOne.time, AbqEOne.IE],[FLAG_1.Etime, FLAG_1.IE], [FLAG_2.Etime, FLAG_2.IE],[FLAG_3.Etime, FLAG_3.IE], name1a, name1f,name2f,name3f, 'Compression - Internal Energy')
+PlotEnergy4([AbqEOne.time, -AbqEOne.WK],[FLAG_1.Etime, FLAG_1.WK], [FLAG_2.Etime, FLAG_2.WK],[FLAG_3.Etime, FLAG_3.WK], name1a, name1f,name2f,name3f,'Compression - External Work')
+PlotEnergy4([AbqEOne.time, AbqEOne.ETOTAL],[FLAG_1.Etime, FLAG_1.ET],[FLAG_2.Etime, FLAG_2.ET],[FLAG_3.Etime, FLAG_3.ET], name1a, name1f,name2f,name3f,'Compression - Total Energy')
 %%
 file1="ACIAttwoodCompression-1_1000Fibers7_discritized";
 FLAG_VD1 = ReadFlagshypOutputFileViscDisp(file1);
@@ -335,6 +348,19 @@ function PlotEnergy3(Data1, Data2, Data3, Name1, Name2,Name3,Title)
     plot(Data1(:,1), Data1(:,2),'DisplayName',Name1,'LineWidth',2)
     plot(Data2(:,1), Data2(:,2),'DisplayName',Name2,'LineWidth',2)
     plot(Data3(:,1), Data3(:,2),'DisplayName',Name3,'LineWidth',1)
+    legend('show')
+    title(Title);
+    ylabel('Energy(J)')
+    xlabel('Time (s)')
+end
+
+function PlotEnergy4(Data1, Data2, Data3,Data4, Name1, Name2,Name3,Name4,Title)
+    figure();
+    hold on; grid on;
+    plot(Data1(:,1), Data1(:,2),'DisplayName',Name1,'LineWidth',3)
+    plot(Data2(:,1), Data2(:,2),'DisplayName',Name2,'LineWidth',4)
+    plot(Data3(:,1), Data3(:,2),'DisplayName',Name3,'LineWidth',3)
+    plot(Data4(:,1), Data4(:,2),'r','DisplayName',Name4,'LineWidth',1)
     legend('show')
     title(Title);
     ylabel('Energy(J)')

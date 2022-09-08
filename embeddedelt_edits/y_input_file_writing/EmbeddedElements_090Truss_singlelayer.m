@@ -40,24 +40,24 @@
 %% User Input
 clear; clc; close all;
 tic
-OriginalINP = "INPfiles/BeamBendTest.inp";
-PartName = "Beam";
+OriginalINP = "SmallTension_Speed.inp";
+PartName = "Part-1";
 OutsideNSetName = "nset=Outside"; 
 % 
-NewINP = "BeamBendTest_Fibers.inp";    %-Coarse
+NewINP = "SmallTension_Speed_Fibers.inp";    %-Coarse
 
-OriginalINP = "INPfiles/AttwoodCompression-1.inp";
-PartName = "L7";
-OutsideNSetName = "nset=Outside"; 
+% OriginalINP = "INPfiles/AttwoodCompression-1.inp";
+% PartName = "L7";
+% OutsideNSetName = "nset=Outside"; 
+% % 
+% NewINP = "AttwoodCompression-1_1000Fibers7_discritized.inp";    %-Coarse
 % 
-NewINP = "AttwoodCompression-1_1000Fibers7_discritized.inp";    %-Coarse
-
-OriginalINP = "INPfiles/RussellTensile-Half.inp";
-PartName = "Gauge";
-OutsideNSetName = "nset=Outside"; 
+% OriginalINP = "INPfiles/RussellTensile-Half.inp";
+% PartName = "Gauge";
+% OutsideNSetName = "nset=Outside"; 
+% % 
+% NewINP = "RussellTensile-1_5_5000Fibers7_discritized.inp";    %-Coarse
 % 
-NewINP = "RussellTensile-1_5_5000Fibers7_discritized.inp";    %-Coarse
-
 % OriginalINP = "INPfiles/DyneemaDiskQuarter_thin.inp";
 % PartName = "TargetPlate";
 % OutsideNSetName = "nset=AllOutside"; 
@@ -70,11 +70,11 @@ NewINP = "RussellTensile-1_5_5000Fibers7_discritized.inp";    %-Coarse
 % 
 % NewINP = "KarthikeyanPlate_1000Fibers_singlelayer.inp";
 % 
-OriginalINP = "INPfiles/FlagshypCube_8h_0t.inp";
-PartName = "Cube";
-OutsideNSetName = "nset=CubeOut"; 
-
-NewINP = "Cube_8h_t.inp";
+% OriginalINP = "INPfiles/FlagshypCube_8h_0t.inp";
+% PartName = "Cube";
+% OutsideNSetName = "nset=CubeOut"; 
+% 
+% NewINP = "Cube_8h_t.inp";
 
 %Plot part in MATLAB for diganostics
 PLOT=false;
@@ -87,7 +87,7 @@ ALLSELFCONTACT=false;
 InteractionProperty="IntProp-1";
 
 %Truss Mesh Density (nodes/length)
-meshseed = 0.25;
+meshseed = 0.0025;
 
 %Set number of points per row
 nptsx = 20;
@@ -104,9 +104,10 @@ DBT = 0.001*5;
 %truss and have matlab calculate the rest
 %Actual Fiber size
 Fact=17E-6;
-Fact=17E-3;
+% Fact=17E-3;
 % Number of fibers per truss element
-FpT = 200;
+FpT = 2500;
+FpT = 6200;
 
     %Calculate Truss area
     TArea = FpT*0.25*pi()*Fact^2;
@@ -135,9 +136,10 @@ PlotMeshShape(Nodes,Outside,PartSurf,PointCloudX,PointCloudY,PLOT)
     XIN=inpolyhedron(PartSurf,Nodes(:,2:4),PointCloudX);
     YIN=inpolyhedron(PartSurf,Nodes(:,2:4),PointCloudY);
 
-% [XXIN]=DetermineOutsidePoints(Nodes,Elements,PointCloudX,PointCloudY);
-% %Plot comparision between XIN and XXIN 
-% PlotXXIN(Nodes,Outside,PartSurf,PointCloudX,PointCloudY,XIN,YIN,XXIN,PLOT)
+    if isempty(XIN) && isempty(YIN)
+        fprintf("Error: no fiber points inside of part\n");
+        return; 
+    end
 
 % Identify End points of nodes
 [EndpointsX,EndpointsY]=FindTrussEndpoints(PointCloudX,PointCloudY,XIN,YIN,distx,disty);
@@ -858,7 +860,7 @@ function [numXelts,numYelts]=WriteInputFile(OriginalINP,NewINP,Fmat,TArea,ALLSEL
        fprintf(fidNew, "*Surface, type ELEMENT, name=ALLSURF\n");
        fprintf(fidNew, " ALLCONT\n");
        fprintf(fidNew, " ALLFIBERS\n");
-       fprintf(fidNew, "**\n");
+%        fprintf(fidNew, "**\n");
     end
     
   %Add the Embedded Element Constraint
