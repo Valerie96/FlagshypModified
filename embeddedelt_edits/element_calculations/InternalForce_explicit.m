@@ -5,7 +5,7 @@
 function [T_internal,PLAST_element,geomJn_1,VolRate,f_damp] = ...
           InternalForce_explicit(ielement,FEM,xlocal,x0local,...
           element_connectivity,Ve,QUADRATURE,properties,CONSTANT,GEOM,...
-          matyp,PLAST,KINEMATICS,MAT,DAMPING,VolumeCorrect,dt)
+          matyp,PLAST,KINEMATICS,DN_X,MAT,DAMPING,VolumeCorrect,dt)
       
 dim=GEOM.ndime;
 
@@ -18,7 +18,7 @@ f_damp     = zeros(FEM(1).mesh.n_dofs_elem,1);
 % strain measures at all the Gauss points of the element.
 %--------------------------------------------------------------------------
 KINEMATICS(1) = gradients(xlocal,x0local,FEM(1).interpolation.element.DN_chi,...
-             QUADRATURE(1).element,KINEMATICS(1));
+             QUADRATURE(1).element,KINEMATICS(1),DN_X);
 
 
 Jn_1=GEOM.Jn_1(ielement);
@@ -63,7 +63,8 @@ for igauss=1:QUADRATURE(1).element.ngauss
     
     %----------------------------------------------------------------------
     % Calculate bulk viscosity damping
-    [le,~]=calc_element_size(FEM(1),GEOM(1),ielement);
+%     [le,~]=calc_element_size(FEM(1),GEOM(1),ielement);
+    le=calc_min_element_size(FEM(1),GEOM(1),ielement);
     rho=properties(1); mu=properties(2); lambda=properties(3);
     Cd=sqrt((lambda + 2*mu)/rho);
     

@@ -22,7 +22,8 @@ for jmesh=1:length(FEM)
                 %Longitudinal Bulk wave speed
                 ce = sqrt((lambda + 2*mu)/rho);
                 
-                [le, max_le] = calc_element_size(FEM(jmesh),GEOM,ielement);
+%                 [le, max_le] = calc_element_size(FEM(jmesh),GEOM,ielement);
+                le = calc_min_element_size(FEM(jmesh),GEOM,ielement);
                 dt_ielt = le/ce;
                 
                 %Add effect of damping 
@@ -47,7 +48,8 @@ for jmesh=1:length(FEM)
                 %Longitudinal Bulk wave speed
                 ce = sqrt((lambda + 2*mu)/rho);
                 
-                [le, max_le] = calc_element_size(FEM(jmesh),GEOM,ielement);
+%                 [le, max_le] = calc_element_size(FEM(jmesh),GEOM,ielement);
+                le = calc_min_element_size(FEM(jmesh),GEOM,ielement);
                 dt_ielt = le/ce;
                 
                 if(dt_ielt < dtMax)

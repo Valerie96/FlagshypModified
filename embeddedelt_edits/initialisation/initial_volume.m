@@ -2,8 +2,8 @@
 % Calculate initial volume for data checking. 
 % Additionally, essential for mean dilation algorithm.
 %--------------------------------------------------------------------------
-function GEOM = initial_volume(FEM,GEOM,QUADRATURE,MAT,KINEMATICS)
-Global_nums = 1:GEOM.total_n_elets;
+function GEOM = initial_volume(FEM,GEOM,QUADRATURE,MAT,INITIAL_KINEMATICS)
+% Global_nums = 1:GEOM.total_n_elets;
 
 
 max_elet_type = 0;
@@ -19,47 +19,46 @@ V_total = 0;
 M_total = 0;
 
 for i = 1:FEM(1).n_elet_type
-for ielement=1:FEM(i).mesh.nelem
-    
-    global_nodes    = FEM(i).mesh.connectivity(:,ielement);   
-    xlocal          = GEOM.x(:,global_nodes);              
-    material_number = MAT(i).matno(ielement);                 
-    matyp           = MAT(i).matyp(material_number);          
-    properties      = MAT(i).props(:,material_number); 
-    
-    switch FEM(i).mesh.element_type
-        case 'truss2'        
-             area         = properties(4);  
-             L            = norm(xlocal(:,2) - xlocal(:,1));    
-             Ve(ielement,i) = area*L;                             
-        otherwise
-             %-------------------------------------------------------------
-             % Compute gradients with respect to isoparametric coordinates.
-             %-------------------------------------------------------------
-             KINEMATICS(i) = gradients(xlocal,xlocal,...
-                                   FEM(i).interpolation.element.DN_chi,...
-                                   QUADRATURE(i).element,KINEMATICS(i));
-             for igauss = 1:QUADRATURE(i).element.ngauss
-                 %---------------------------------------------------------
-                 % Computes the thickness in the deformed configuration for
-                 % plane stress problems.
-                 %---------------------------------------------------------
-                 thickness_factor  = thickness_plane_stress(properties,...
-                                             KINEMATICS(i).J(igauss),matyp);            
-                 JW = KINEMATICS(i).Jx_chi(igauss)*QUADRATURE(i).element.W(igauss)*thickness_factor; 
-                 %---------------------------------------------------------
-                 % Compute volume of an element of the mesh.
-                 %---------------------------------------------------------
-                 Ve(ielement,i) = Ve(ielement,i) + JW;
-             end
+    for ielement=1:FEM(i).mesh.nelem
+        
+        global_nodes    = FEM(i).mesh.connectivity(:,ielement);   
+        xlocal          = GEOM.x(:,global_nodes);              
+        material_number = MAT(i).matno(ielement);                 
+        matyp           = MAT(i).matyp(material_number);          
+        properties      = MAT(i).props(:,material_number); 
+        
+        switch FEM(i).mesh.element_type
+            case 'truss2'        
+                 area         = properties(4);  
+                 L            = norm(xlocal(:,2) - xlocal(:,1));    
+                 Ve(ielement,i) = area*L;                             
+            otherwise
+                 %-------------------------------------------------------------
+                 % Compute gradients with respect to isoparametric coordinates.
+                 %-------------------------------------------------------------
+%                  KINEMATICS(i) = gradients(xlocal,xlocal,...
+%                                        FEM(i).interpolation.element.DN_chi,...
+%                                        QUADRATURE(i).element,INITIAL_KINEMATICS(i));
+                 for igauss = 1:QUADRATURE(i).element.ngauss
+                     %---------------------------------------------------------
+                     % Computes the thickness in the deformed configuration for
+                     % plane stress problems.
+                     %---------------------------------------------------------
+                     thickness_factor  = thickness_plane_stress(properties,1,matyp);%Initial Jacobian between current and deformed is 1 because there is no deformation yet            
+                     JW = INITIAL_KINEMATICS(i).JX_chi(igauss)*QUADRATURE(i).element.W(igauss)*thickness_factor; 
+                     %---------------------------------------------------------
+                     % Compute volume of an element of the mesh.
+                     %---------------------------------------------------------
+                     Ve(ielement,i) = Ve(ielement,i) + JW;
+                 end
+        end
+        %----------------------------------------------------------------------
+        % Total volume of the mesh. 
+        %----------------------------------------------------------------------
+        V_total = V_total + Ve(ielement,i);
+        %Total Mass of mesh (for fun)
+        M_total = M_total + Ve(ielement,i)*properties(1);
     end
-    %----------------------------------------------------------------------
-    % Total volume of the mesh. 
-    %----------------------------------------------------------------------
-    V_total = V_total + Ve(ielement,i);
-    %Total Mass of mesh (for fun)
-    M_total = M_total + Ve(ielement,i)*properties(1);
-end
 end
 %--------------------------------------------------------------------------
 % Save information in data structure.

@@ -3,7 +3,7 @@
 % matrix except surface (line) element pressure contributions.
 %--------------------------------------------------------------------------
 function [GLOBAL,updated_PLAST,Jn_1_vec,VolRate_vec,globef_damp] = getForce_explicit(xlamb,...
-          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,INITIAL_KINEMATICS,BC,DAMPING,EmbedElt,VolumeCorrect,dt)    
+          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,BC,DAMPING,EmbedElt,VolumeCorrect,dt)    
       
 Step_globalT_int = zeros(size(GLOBAL.T_int,1),1); 
 Step_globalvdamp = zeros(size(GLOBAL.T_int,1),1); 
@@ -33,36 +33,21 @@ k=1;
     % Main element loop.
 %     ticBytes(gcp);
     %--------------------------------------------------------------------------
-    %OG: 144.122 s
-    %Parfor 443.804 s
-    %Parfor with less broadcast variables 229.719
-
-    connectivity    = FEM(k).mesh.connectivity;   
-    matno_list      = MAT(k).matno;     
-    matyp_list      = MAT(k).matyp;        
-    props_list      = MAT(k).props; 
-    xgeom           = GEOM.x;                     
-    x0geom          = GEOM.x0;                       
-    Ve_list         = GEOM.Ve;
-    Tint            = GLOBAL.T_int;
-    elt_type        = FEM(k).mesh.element_type;
-
-
-    %parfor ielet=1:FEM(k).mesh.nelem
+    %144.122 s
     for ielet=1:FEM(k).mesh.nelem
-        temp_globalT_int = zeros(size(Tint,1),1); 
-        temp_globalvdamp = zeros(size(Tint,1),1); 
+    temp_globalT_int = zeros(size(GLOBAL.T_int,1),1); 
+    temp_globalvdamp = zeros(size(GLOBAL.T_int,1),1); 
     
             %----------------------------------------------------------------------
             % GATHER Temporary variables associated with a particular element.
             %----------------------------------------------------------------------
-            global_nodes    = connectivity(:,ielet);   
-            material_number = matno_list(ielet);     
-            matyp           = matyp_list(material_number);        
-            properties      = props_list(:,material_number); 
-            xlocal          = xgeom(:,global_nodes);                     
-            x0local         = x0geom(:,global_nodes);                       
-            Ve              = Ve_list(ielet);      
+            global_nodes    = FEM(k).mesh.connectivity(:,ielet);   
+            material_number = MAT(k).matno(ielet);     
+            matyp           = MAT(k).matyp(material_number);        
+            properties      = MAT(k).props(:,material_number); 
+            xlocal          = GEOM.x(:,global_nodes);                     
+            x0local         = GEOM.x0(:,global_nodes);                       
+            Ve              = GEOM.Ve(ielet);      
 %             v_e             = GLOBAL.velocities(global_nodes);
 %             a_e             = GLOBAL.accelerations(global_nodes);
 
@@ -73,20 +58,18 @@ k=1;
             %----------------------------------------------------------------------
             % Compute internal force and stiffness matrix for an element.
             %----------------------------------------------------------------------    
-            switch elt_type
+            switch FEM(k).mesh.element_type
               case 'truss2'
                [T_internal,~,Jn_1,VolRate,~,~, ~] = element_force_truss(...
                   properties,xlocal,x0local,PLAST(1),GEOM,DAMPING,dt);
               f_damp=T_internal*0;
 %                 Jn_1_vec(ielement) = 1;
 %                 VolRate_vec(ielement) = 1;
-                otherwise
-                 DN_Xtemp=INITIAL_KINEMATICS.DN_X;
-                 DN_X=DN_Xtemp{ielet,1};
+              otherwise
                [T_internal,PLAST_element,Jn_1,VolRate,f_damp] = ...
                 InternalForce_explicit(ielet,FEM,xlocal,x0local,global_nodes,...
                 Ve,QUADRATURE,properties,CONSTANT,GEOM,matyp,PLAST_element,...
-                KINEMATICS,DN_X,MAT,DAMPING,VolumeCorrect,dt);
+                KINEMATICS,MAT,DAMPING,VolumeCorrect,dt);
 
                 Jn_1_vec(ielet) = Jn_1;
                 VolRate_vec(ielet) = VolRate;

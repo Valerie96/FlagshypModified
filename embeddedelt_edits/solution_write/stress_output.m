@@ -2,7 +2,7 @@
 % Compute stresses at Gauss point level.
 %--------------------------------------------------------------------------
 function [Stress,eps] = stress_output(dim,PLAST_element,matyp,Ve,xlocal,x0local,...
-                  properties,QUADRATURE,CONSTANT,FEM,KINEMATICS,GEOM)
+                  properties,QUADRATURE,CONSTANT,FEM,KINEMATICS,DN_X,GEOM)
 switch matyp
     %----------------------------------------------------------------------
     % Obtain stress for trusses.
@@ -37,7 +37,7 @@ if matyp~=2
    % Kinematics at the Gauss points of the element.
    %--------------------------------------------------------------------------
    KINEMATICS = gradients(xlocal,x0local,FEM.interpolation.element.DN_chi,...
-                          QUADRATURE,KINEMATICS);
+                          QUADRATURE,KINEMATICS,DN_X);
    %-----------------------------------------------------------------------
    % Compute pressure from mean dilatation algorithm.
    %-----------------------------------------------------------------------

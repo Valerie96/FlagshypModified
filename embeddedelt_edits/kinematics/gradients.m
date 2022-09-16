@@ -6,14 +6,15 @@
 % the shape functions. It also computes the principal stretches (lambda) 
 % and their associated principal spatial principal directions (n).
 %--------------------------------------------------------------------------
-function KINEMATICS = gradients(xlocal,Xlocal,DN_chi,QUADRATURE,KINEMATICS) 
+function KINEMATICS = gradients(xlocal,Xlocal,DN_chi,QUADRATURE,KINEMATICS,DN_X_input) 
 for igauss=1:QUADRATURE.ngauss
     %----------------------------------------------------------------------
     % Derivative of shape functions with respect to ...
     % - initial coordinates.
     %----------------------------------------------------------------------
-    DX_chi = Xlocal*DN_chi(:,:,igauss)';
-    DN_X   = DX_chi'\DN_chi(:,:,igauss);
+%     DX_chi = Xlocal*DN_chi(:,:,igauss)';
+%     DN_X   = DX_chi'\DN_chi(:,:,igauss);
+    DN_X   = DN_X_input(:,:,igauss);
     %----------------------------------------------------------------------   
     % - current coordinates.
     %----------------------------------------------------------------------

@@ -12,6 +12,21 @@ PlotEnergy([FLAG_1.Etime, FLAG_1.WK],[FLAG_1.Etime, FLAG_1.WK], name1f, name1f, 
 PlotEnergy([FLAG_1.Etime, FLAG_1.VD],[FLAG_1.Etime, FLAG_1.VD], name1f, name1f, 'Tension - Viscous Dissipation')
 PlotEnergy([FLAG_1.Etime, FLAG_1.ET],[FLAG_1.Etime, FLAG_1.ET], name1f, name1f, 'Tension - Total Energy')
 
+%%
+file1="IrregularShape";
+name1f = "Flagshyp";
+FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
+
+file2="IrregularShape_newlengthfunc";
+name2f = "Flagshyp_newlengthfunc";
+FLAG_2 = ReadFlagshypOutputFile(file2,'jf');
+
+suffix = ' ';
+PlotEnergy([FLAG_1.Etime, FLAG_1.KE],[FLAG_2.Etime, FLAG_2.KE], name1f, name2f, 'Tension - Kinetic Energy')
+PlotEnergy([FLAG_1.Etime, FLAG_1.IE],[FLAG_2.Etime, FLAG_2.IE], name1f, name2f, 'Tension - Internal Energy')
+PlotEnergy([FLAG_1.Etime, FLAG_1.WK],[FLAG_2.Etime, FLAG_2.WK], name1f, name2f, 'Tension - External Work')
+PlotEnergy([FLAG_1.Etime, FLAG_1.VD],[FLAG_2.Etime, FLAG_2.VD], name1f, name2f, 'Tension - Viscous Dissipation')
+PlotEnergy([FLAG_1.Etime, FLAG_1.ET],[FLAG_2.Etime, FLAG_2.ET], name1f, name2f, 'Tension - Total Energy')
 %% Function Defs
 
 function PlotEnergy(Data1, Data2, Name1, Name2,Title)

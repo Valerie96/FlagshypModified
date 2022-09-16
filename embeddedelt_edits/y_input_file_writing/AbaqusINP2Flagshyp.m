@@ -12,8 +12,8 @@
 
 clear; clc; close all; 
 
-OriginalINP = "SmallTension_Speed_Fibers.inp";
-NewINP = "SmallTension_Speed.dat";   
+OriginalINP = "IrregularShape.inp";
+NewINP = "IrregularShape.dat";   
 
 % OriginalINP = "RussellTensile-1-5_5000Fibers7_discritized.inp";
 % NewINP = "RussellTensile-1-5_5000Fibers7_discritized.dat";

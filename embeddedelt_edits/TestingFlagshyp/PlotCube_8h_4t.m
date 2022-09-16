@@ -223,7 +223,7 @@ plot(AbqE.time,AbqEHost.S(:,1,2),'ro' ,'DisplayName',name2a);
 plot(FLAG_1.time,FLAG_1.HostS(:,1,2),'b','DisplayName',name1,'LineWidth',3);
 plot(FLAG_2.time,FLAG_2.HostS(:,1,2),'r','DisplayName',name2,'LineWidth',3);
 plot(FLAG_3.time,FLAG_3.HostS(:,1,2),'g','DisplayName',name3,'LineWidth',2);
-plot(time,AnalyticStress1,'c','DisplayName',"Analytic")
+% plot(time,AnalyticStress1,'c','DisplayName',"Analytic")
 title("Host Element 2 XX Stress");
 xlabel("Time (s)");
 ylabel("Stress (Pa)");
@@ -237,7 +237,7 @@ plot(AbqE.time,AbqEHost.S(:,1,1),'ro' ,'DisplayName',name2a);
 plot(FLAG_1.time,FLAG_1.HostS(:,1,1),'b','DisplayName',name1,'LineWidth',3);
 plot(FLAG_2.time,FLAG_2.HostS(:,1,1),'r','DisplayName',name2,'LineWidth',3);
 plot(FLAG_3.time,FLAG_3.HostS(:,1,1),'g','DisplayName',name3,'LineWidth',2);
-plot(time,AnalyticStress1,'c','DisplayName',"Analytic")
+% plot(time,AnalyticStress1,'c','DisplayName',"Analytic")
 title("Host Element 1 XX Stress");
 xlabel("Time (s)");
 ylabel("Stress (Pa)");
@@ -250,7 +250,7 @@ plot(AbqOneHost.time,AbqOneHost.RF(:,2,1),'bo','DisplayName',name1a);
 plot(AbqE.time,AbqEHost.RF(:,2,1),'ro' ,'DisplayName',name2a);
 plot(FLAG_1.time,FLAG_1.RF(:,2,1),'b','DisplayName',name1,'LineWidth',3);
 plot(FLAG_2.time,FLAG_2.RF(:,2,1),'r','DisplayName',name2,'LineWidth',3);
-plot(FLAG_3.time,FLAG_3.RF(:,2,1),'g','DisplayName',name3,'LineWidth',2);
+% plot(FLAG_3.time,FLAG_3.RF(:,2,1),'g','DisplayName',name3,'LineWidth',2);
 title("External Reaction Force");
 xlabel("Time (s)");
 ylabel("Force (N)");
@@ -264,7 +264,7 @@ plot(AbqE.time,AbqEHost.S(:,4,2),'ro' ,'DisplayName',name2a);
 plot(FLAG_1.time,FLAG_1.HostS(:,4,2),'b','DisplayName',name1,'LineWidth',3);
 plot(FLAG_2.time,FLAG_2.HostS(:,4,2),'r','DisplayName',name2,'LineWidth',3);
 plot(FLAG_3.time,FLAG_3.HostS(:,4,2),'g','DisplayName',name3,'LineWidth',2);
-plot(time,AnalyticStress2,'c','DisplayName',"Analytic")
+% plot(time,AnalyticStress2,'c','DisplayName',"Analytic")
 title("Host Element 2 YY Stress");
 xlabel("Time (s)");
 ylabel("Stress (Pa)");
@@ -278,7 +278,7 @@ plot(AbqE.time,AbqEHost.S(:,4,1),'ro' ,'DisplayName',name2a);
 plot(FLAG_1.time,FLAG_1.HostS(:,4,1),'b','DisplayName',name1,'LineWidth',3);
 plot(FLAG_2.time,FLAG_2.HostS(:,4,1),'r','DisplayName',name2,'LineWidth',3);
 plot(FLAG_3.time,FLAG_3.HostS(:,4,1),'g','DisplayName',name3,'LineWidth',2);
-plot(time,AnalyticStress2,'c','DisplayName',"Analytic")
+% plot(time,AnalyticStress2,'c','DisplayName',"Analytic")
 title("Host Element 1 YY Stress");
 xlabel("Time (s)");
 ylabel("Stress (Pa)");
@@ -292,7 +292,7 @@ plot(AbqE.time,AbqEHost.S(:,2,2),'ro' ,'DisplayName',name2a);
 plot(FLAG_1.time,FLAG_1.HostS(:,2,2),'b','DisplayName',name1,'LineWidth',3);
 plot(FLAG_2.time,FLAG_2.HostS(:,2,2),'r','DisplayName',name2,'LineWidth',3);
 plot(FLAG_3.time,FLAG_3.HostS(:,2,2),'g','DisplayName',name3,'LineWidth',2);
-plot(time,AnalyticStress12,'c','DisplayName',"Analytic")
+% plot(time,AnalyticStress12,'c','DisplayName',"Analytic")
 title("Host Element 2 XY Stress");
 xlabel("Time (s)");
 ylabel("Stress (Pa)");
@@ -306,7 +306,7 @@ plot(AbqE.time,AbqEHost.S(:,2,1),'ro' ,'DisplayName',name2a);
 plot(FLAG_1.time,FLAG_1.HostS(:,2,1),'b','DisplayName',name1,'LineWidth',3);
 plot(FLAG_2.time,FLAG_2.HostS(:,2,1),'r','DisplayName',name2,'LineWidth',3);
 plot(FLAG_3.time,FLAG_3.HostS(:,2,1),'g','DisplayName',name3,'LineWidth',2);
-plot(time,AnalyticStress12,'c','DisplayName',"Analytic")
+% plot(time,AnalyticStress12,'c','DisplayName',"Analytic")
 title("Host Element 1 XY Stress");
 xlabel("Time (s)");
 ylabel("Stress (Pa)");

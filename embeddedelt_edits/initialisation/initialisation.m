@@ -2,7 +2,7 @@
 % Initialises kinematic variables and computes initial tangent matrix 
 % and equivalent force vector, excluding pressure components.
 %----------------------------------------------------------------------
-function [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS] = ...
+function [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS,INITIAL_KINEMATICS] = ...
          initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt,VolumeCorrect)
 %--------------------------------------------------------------------------    
 % Initialisation of internal variables for plasticity.
@@ -10,6 +10,11 @@ function [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS] = ...
 
 %|-/ 
 GEOM.element_num = zeros(3,GEOM.total_n_elets);
+PLAST.a=[0];
+
+PLAST = repmat(PLAST,FEM(1).n_elet_type,1);
+
+
 %|-/
 
 for i = 1:FEM(1).n_elet_type
@@ -32,13 +37,7 @@ check = (isempty((MAT(i).matyp(MAT(i).matyp==17)))*isempty((MAT(i).matyp(MAT(i).
                               FEM(i).mesh.nelem); 
        end
     end
-    
-    %Initialisation of kinematics. 
-    %--------------------------------------------------------------------------
-    KINEMATICS(i) = kinematics_initialisation(GEOM,FEM(i),QUADRATURE(i).element);
-    %--------------------------------------------------------------------------
-    
-    %--------------------------------------------------------------------------
+        %--------------------------------------------------------------------------
     %Assign global element numbers to all elements.
     %   Store global #, type, embedded code 
     %   Global number assignments will be needed when looping through all
@@ -50,9 +49,15 @@ check = (isempty((MAT(i).matyp(MAT(i).matyp==17)))*isempty((MAT(i).matyp(MAT(i).
 %     GEOM.element_num(3, Global_nums) = FEM(i).mesh.embedcode;
 %     
 %     nel = nel + Global_nums(end);
-    %--------------------------------------------------------------------------
-
+%--------------------------------------------------------------------------
 end
+    %Initialisation of kinematics. 
+    %--------------------------------------------------------------------------
+    [KINEMATICS,INITIAL_KINEMATICS] = kinematics_initialisation(GEOM,FEM,QUADRATURE);
+    %--------------------------------------------------------------------------
+   
+
+
 %--------------------------------------------------------------------------    
 % Initialise undeformed geometry and initial residual and external forces. 
 %--------------------------------------------------------------------------    
@@ -77,7 +82,7 @@ end
 % Calculate initial volume for data checking. 
 % Additionally, essential for mean dilation algorithm.
 %--------------------------------------------------------------------------
-GEOM = initial_volume(FEM,GEOM,QUADRATURE,MAT,KINEMATICS);
+GEOM = initial_volume(FEM,GEOM,QUADRATURE,MAT,INITIAL_KINEMATICS);
 %--------------------------------------------------------------------------    
 % Compute the external force vector contribution due to gravity 
 % (nominal value prior to load increment). 
