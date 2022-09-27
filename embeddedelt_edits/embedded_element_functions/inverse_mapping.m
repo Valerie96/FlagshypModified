@@ -16,8 +16,9 @@ function GEOM = inverse_mapping(GEOM,FEM,tienodes)
 
 
     NodeHost = zeros(GEOM.npoin,1);
-    ElementHost = zeros(GEOM.total_n_elets,4);
-    HostTotals = zeros(GEOM.total_n_elets,2);
+    ElementHost = zeros(FEM(2).mesh.nelem,4);
+    HostTotals = zeros(FEM(1).mesh.nelem,2);
+    HostsElements = cell(FEM(1).mesh.nelem,1);
     Zeta = zeros(3,GEOM.npoin);
     
     %Loop throgh host elements
@@ -25,6 +26,7 @@ function GEOM = inverse_mapping(GEOM,FEM,tienodes)
         h = h_elts(j);
         h_connectivity = FEM(1).mesh.connectivity(:,h);
         x_h = GEOM.x0(:,h_connectivity);  %Host node global coordinates
+        HostsElements{j}=zeros(FEM(2).mesh.nelem,1);
 
         %Loop over all embedded nodes
         for i = 1:length(e_nodes)
@@ -44,7 +46,7 @@ function GEOM = inverse_mapping(GEOM,FEM,tienodes)
                     Zeta(:,ne) = find_natural_coords(x_ne, x_h, FEM(1).mesh.element_type);
                 end
             end
-        end    
+        end
     end
 
     %Assign hosts to embedded elements
@@ -61,7 +63,8 @@ function GEOM = inverse_mapping(GEOM,FEM,tienodes)
         if host1==host2 && host1~=0
             HostTotals(host1,2) = HostTotals(host1,2) + 1;
             ElementHost(e,3) = 0.5;
-            ElementHost(e,4) = 0.5;            
+            ElementHost(e,4) = 0.5;
+            HostsElements{host1}(e)=e;
         else
             p = find_intersection(GEOM.x0,FEM,e_connectivity,host1,host2);
             
@@ -77,6 +80,8 @@ function GEOM = inverse_mapping(GEOM,FEM,tienodes)
             
             HostTotals(host1,2) = HostTotals(host1,2) + 1;
             HostTotals(host2,2) = HostTotals(host2,2) + 1;
+            HostsElements{host1}(e)=e;
+            HostsElements{host2}(e)=e;
             
         end
 
@@ -87,4 +92,8 @@ function GEOM = inverse_mapping(GEOM,FEM,tienodes)
     GEOM.embedded.HostTotals = HostTotals;
     GEOM.embedded.Embed_Zeta = Zeta;
 
+    for i=1:FEM(1).mesh.nelem
+        HostsElements{i} = HostsElements{i}(HostsElements{i}>0);
+    end
+    GEOM.embedded.HostsElements=HostsElements;
 end

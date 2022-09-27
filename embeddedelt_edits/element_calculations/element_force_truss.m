@@ -4,12 +4,12 @@
 function [T_internal,PLAST,geomJn_1,VolRate,Cauchy,epsilon,CauchyTensor] = element_force_truss(...
           properties,x_local,X_local,PLAST,GEOM,DAMPING,dt)  
       
-rho   = properties(1);
+% rho   = properties(1);
 E     = properties(2);
 nu    = properties(3);
 area  = properties(4);
-ty0   = properties(5);  
-H     = properties(6);
+% ty0   = properties(5);  
+% H     = properties(6);
 lam = (E*nu/((1+nu)*(1-2*nu))); mu = E/(2*(1+nu)); 
 
 % ep    = PLAST.ep;    

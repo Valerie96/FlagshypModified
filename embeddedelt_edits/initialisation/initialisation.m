@@ -2,7 +2,7 @@
 % Initialises kinematic variables and computes initial tangent matrix 
 % and equivalent force vector, excluding pressure components.
 %----------------------------------------------------------------------
-function [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS,INITIAL_KINEMATICS] = ...
+function [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS,INITIAL_KINEMATICS,STRESS] = ...
          initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt,VolumeCorrect)
 %--------------------------------------------------------------------------    
 % Initialisation of internal variables for plasticity.
@@ -11,10 +11,11 @@ function [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS,INITIAL_KINEMATICS] = ...
 %|-/ 
 GEOM.element_num = zeros(3,GEOM.total_n_elets);
 PLAST.a=[0];
-
 PLAST = repmat(PLAST,FEM(1).n_elet_type,1);
 
-
+% Initilize structure to store stress, strain, and truss internal force
+STRESS.InternalForce = [0];
+STRESS = repmat(STRESS,FEM(1).n_elet_type,1);
 %|-/
 
 for i = 1:FEM(1).n_elet_type
@@ -23,18 +24,34 @@ check = (isempty((MAT(i).matyp(MAT(i).matyp==17)))*isempty((MAT(i).matyp(MAT(i).
     if check  
        PLAST(i).a = [0];
        PLAST(i).b = [0];
+
+       switch FEM(i).mesh.element_type
+           case 'truss2'
+                STRESS(i).Cauchy=zeros(FEM(i).mesh.nelem,1);
+                STRESS(i).LE=zeros(FEM(i).mesh.nelem,1);
+                STRESS(i).InternalForce=zeros(FEM(i).mesh.nelem,GEOM.ndime*2);
+           otherwise
+                STRESS(i).Cauchy=zeros(FEM(i).mesh.nelem,6,QUADRATURE(i).element.ngauss);
+                STRESS(i).LE=zeros(FEM(i).mesh.nelem,6,QUADRATURE(i).element.ngauss);
+       end
+
     else 
    
        switch FEM(i).mesh.element_type
            case 'truss2'
                 PLAST(i).ep    = zeros(FEM(i).mesh.nelem,1);  
-                PLAST(i).epbar = zeros(FEM(i).mesh.nelem,1);  
+                PLAST(i).epbar = zeros(FEM(i).mesh.nelem,1); 
+                STRESS(i).Cauchy=zeros(FEM(i).mesh.nelem,1);
+                STRESS(i).LE=zeros(FEM(i).mesh.nelem,1);
+                STRESS(i).InternalForce=zeros(FEM(i).mesh.nelem,GEOM.ndime*2);
            otherwise
                 PLAST(i).epbar = zeros(QUADRATURE(i).element.ngauss,FEM(i).mesh.nelem,1);       
                 PLAST(i).invCp = reshape(repmat(eye(GEOM.ndime),1,...
                               QUADRATURE(i).element.ngauss*FEM(i).mesh.nelem),...
                               GEOM.ndime,GEOM.ndime,QUADRATURE(i).element.ngauss,...
                               FEM(i).mesh.nelem); 
+                STRESS(i).Cauchy=zeros(FEM(i).mesh.nelem,QUADRATURE(i).element.ngauss);
+                STRESS(i).LE=zeros(FEM(i).mesh.nelem,QUADRATURE(i).element.ngauss);
        end
     end
         %--------------------------------------------------------------------------
@@ -67,7 +84,6 @@ GEOM.x0              = GEOM.x;
 GLOBAL.Residual      = zeros(mesh_dof,1);
 GLOBAL.external_load = zeros(mesh_dof,1);
 GLOBAL.Reactions     = zeros(mesh_dof,1);
-
 
 
 % Define velocity and accelerations for explicit method;

@@ -4,7 +4,7 @@
 % - For node CON.OUTPUT.nwant and dof CON.OUTPUT.iwant output displacement
 %   and corresponding force (file name '...FLAGOUT.TXT').
 %--------------------------------------------------------------------------
-function output_vtu(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS)
+function output_vtu(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS)
 %--------------------------------------------------------------------------
 % Restart or write from sratch.
 %--------------------------------------------------------------------------
@@ -263,13 +263,13 @@ fprintf(fid3,'%s%s%s%s</DataArray>\n',space,space,space,space);
 fprintf(fid3,'%s%s%s</PointData>\n',space,space,space);
 
 
-plot_stresses(GEOM,FEM,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,fid3)
+plot_stresses(GEOM,FEM,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS,fid3);
 % 
 % plot_Lagrangian_strain(GEOM,FEM,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,fid3)
 % 
 % plot_Eulerian_strain(GEOM,FEM,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,fid3)
 % 
-plot_lnV(GEOM,FEM,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,fid3);
+plot_lnV(GEOM,FEM,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS,fid3);
 % 
 % 
 % 

@@ -4,7 +4,7 @@
 % - For node CON.OUTPUT.nwant and dof CON.OUTPUT.iwant output displacement
 %   and corresponding force (file name '...FLAGOUT.TXT').
 %--------------------------------------------------------------------------
-function output(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,time,dt)
+function output(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS,time,dt)
 %--------------------------------------------------------------------------
 % Restart or write from sratch.
 %--------------------------------------------------------------------------
@@ -124,10 +124,12 @@ for i=1:FEM(1).n_elet_type
         %----------------------------------------------------------------------
         % Compute stresses at Gauss point level.
         %----------------------------------------------------------------------
-        DN_Xtemp=INITIAL_KINEMATICS.DN_X;
-        DN_X=DN_Xtemp{ielement,1};
-        [Stress, LE] = stress_output(GEOM.ndime,PLAST_element,matyp,Ve,xlocal,x0local,...
-                               properties,QUADRATURE(i).element,CONSTANT,FEM(i),KINEMATICS(i),DN_X,GEOM);    
+%         DN_Xtemp=INITIAL_KINEMATICS.DN_X;
+%         DN_X=DN_Xtemp{ielement,1};
+%         [Stress, LE] = stress_output(GEOM.ndime,PLAST_element,matyp,Ve,xlocal,x0local,...
+%                                properties,QUADRATURE(i).element,CONSTANT,FEM(i),KINEMATICS(i),DN_X,GEOM);  
+        [Stress, LE] = stress_output_from_mem(GEOM.ndime,ielement,matyp,xlocal,x0local,...
+                               properties,QUADRATURE(i).element,GEOM,STRESS);
         %----------------------------------------------------------------------
         % Print stress.
         %----------------------------------------------------------------------    

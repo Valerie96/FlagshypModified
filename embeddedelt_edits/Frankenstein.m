@@ -5,17 +5,18 @@ basedir_fem='C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edit
 % basedir_fem='C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/job_folder/StrainRateTesting';
 % inputfile = 'RussellTensile-Half_5000Fibers7_discritized.dat';
 % inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
-% inputfile = 'SmallTension_Speed.dat';
-inputfile = 'Cube_8h_4t.dat';
+inputfile = 'SmallTension_Speed.dat';
+inputfile = 'Cube_8h_4t_correct.dat';
 % inputfile = 'IrregularShape_newlengthfunc.dat';
 
 DAMPING.b1 = 0.04; %Linear bulk viscosity damping
 DAMPING.b2 = 1.2; %Quadratic bulk viscosity damping
 prefactor = 0.7;%0.75;
+outputfreq = 500;
 outputfreq = 10;
 ansmlv='y'; 
 
-vtuOn = 0;
+vtuOn = 1;
 
 %Damping test for 2 hex
 DAMPING.b1 = 0.06; %Linear bulk viscosity damping
@@ -131,7 +132,7 @@ tic
     % and equivalent force vector, excluding pressure component.
     %---------------------------------------------------------------------
 
-    [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS,INITIAL_KINEMATICS] = ...
+    [GEOM,LOAD,GLOBAL,PLAST,KINEMATICS,INITIAL_KINEMATICS,STRESS] = ...
      initialisation(FEM,GEOM,QUADRATURE,MAT,LOAD,CONSTANT,CON,GLOBAL,BC,Explicit,EmbedElt,VolumeCorrect);   
     
     %----------------------------------------------------------------------
@@ -149,7 +150,7 @@ tic
                       GLOBAL,PLAST,KINEMATICS,'internal')    
     %output_vtk(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE.element,CONSTANT,KINEMATICS); 
     if vtuOn
-        output_vtu(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS);
+        output_vtu(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS);
     end
 
 
@@ -166,12 +167,12 @@ CON.xlamb = 1;
 CON.incrm = 0; 
 
 
-output(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,0,0);
+output(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS,0,0);
 CON.incrm = CON.incrm + 1; 
 
 %step 2 - getForce
-[GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp] = getForce_explicit(CON.xlamb,...
-          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,INITIAL_KINEMATICS,BC,DAMPING,EmbedElt,VolumeCorrect,1);      
+[GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp,STRESS] = getForce_explicit(CON.xlamb,...
+          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,INITIAL_KINEMATICS,BC,DAMPING,STRESS,EmbedElt,VolumeCorrect,1);      
      
 %step 3 - compute accelerations.
 GLOBAL.accelerations(BC.hostdof(:,1)) = inv(GLOBAL.M)*(GLOBAL.external_load(BC.hostdof(:,1)) - GLOBAL.T_int(BC.hostdof(:,1)));
@@ -288,8 +289,8 @@ while(Time<tMax)
   f_damp_prev = f_damp;
   
 %step 8 - getForce
-  [GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp] = getForce_explicit(CON.xlamb,...
-          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,INITIAL_KINEMATICS,BC,DAMPING,EmbedElt,VolumeCorrect,dt);
+  [GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp,STRESS] = getForce_explicit(CON.xlamb,...
+          GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,INITIAL_KINEMATICS,BC,DAMPING,STRESS,EmbedElt,VolumeCorrect,dt);
 
   GLOBAL.external_load_effective = GLOBAL.external_load + GLOBAL.Reactions;
   
@@ -327,12 +328,12 @@ while(Time<tMax)
   if( mod(time_step_counter,outputfreq) == 0 || Time == tMax)
       plot_counter = plot_counter +1;
       
-      output(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,Time,dt);
+      output(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS,Time,dt);
 
       write_energy_output(PRO,CON,Wint,Wext,WKE,Wvdamp,Time)
 
       if vtuOn
-        output_vtu(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS);
+        output_vtu(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS);
       end
 
 %       PLAST = save_output(updated_PLAST,PRO,FEM,GEOM,QUADRATURE,BC,...

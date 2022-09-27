@@ -1,4 +1,4 @@
-function plot_stresses(GEOM,FEM,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,fid3)
+function plot_stresses(GEOM,FEM,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITIAL_KINEMATICS,STRESS,fid3)
 
 space = '   ';
 
@@ -47,9 +47,14 @@ for ielement=1:FEM(nt).mesh.nelem
     %----------------------------------------------------------------------
     % Compute stresses at Gauss point level.
     %----------------------------------------------------------------------
-    Stress = stress_output(GEOM.ndime,PLAST_element,matyp,Ve,xlocal,x0local,...
-                           properties,QUADRATURE(nt).element,CONSTANT,FEM(nt),KINEMATICS(nt),GEOM);  
-    %----------------------------------------------------------------------
+%     DN_Xtemp=INITIAL_KINEMATICS.DN_X;
+%     DN_X=DN_Xtemp{ielement,1};
+%     Stress = stress_output(GEOM.ndime,PLAST_element,matyp,Ve,xlocal,x0local,...
+%                            properties,QUADRATURE(nt).element,CONSTANT,FEM(nt),KINEMATICS(nt),DN_X,GEOM);  
+    [Stress, ~] = stress_output_from_mem(GEOM.ndime,ielement,matyp,xlocal,x0local,...
+                       properties,QUADRATURE(nt).element,GEOM,STRESS);
+
+%----------------------------------------------------------------------
     % Print stress.
     %----------------------------------------------------------------------    
    % 

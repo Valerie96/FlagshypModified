@@ -12,20 +12,20 @@ Step_globalvdamp = zeros(size(GLOBAL.T_int,1),1);
 %If embedded elements are being used, calculated the stresses of the
 %embedded elements first so they can be used in the internal force
 %calculation of the host elements
-if EmbedElt==1
-    for ielet=1:FEM(2).mesh.nelem
-        global_nodes    = FEM(2).mesh.connectivity(:,ielet);   
-        material_number = MAT(2).matno(ielet);
-        properties      = MAT(2).props(:,material_number); 
-        xlocal          = GEOM.x(:,global_nodes);                     
-        x0local         = GEOM.x0(:,global_nodes);  
-        [T_internal,~,~,~,Cauchy,LE, ~] = element_force_truss(...
-          properties,xlocal,x0local,PLAST(1),GEOM,DAMPING,dt);
-       STRESS(2).Cauchy(ielet) = Cauchy;
-       STRESS(2).LE(ielet) = LE;
-       STRESS(2).InternalForce(ielet,:)=T_internal';
-    end
-end
+% if EmbedElt==1
+%     for ielet=1:FEM(2).mesh.nelem
+%         global_nodes    = FEM(2).mesh.connectivity(:,ielet);   
+%         material_number = MAT(2).matno(ielet);
+%         properties      = MAT(2).props(:,material_number); 
+%         xlocal          = GEOM.x(:,global_nodes);                     
+%         x0local         = GEOM.x0(:,global_nodes);  
+%         [T_internal,~,~,~,Cauchy,LE, ~] = element_force_truss(...
+%           properties,xlocal,x0local,PLAST(1),GEOM,DAMPING,dt);
+%        STRESS(2).Cauchy(ielet) = Cauchy;
+%        STRESS(2).LE(ielet) = LE;
+%        STRESS(2).InternalForce(ielet,:)=T_internal';
+%     end
+% end
 
 % for k = [1:FEM(1).n_elet_type-e]
 k=1;
@@ -95,15 +95,17 @@ k=1;
 %                 Jn_1_vec(ielement) = 1;
 %                 VolRate_vec(ielement) = 1;
                 otherwise
-                 DN_Xtemp=INITIAL_KINEMATICS(1).DN_X;
+                 DN_Xtemp=INITIAL_KINEMATICS.DN_X;
                  DN_X=DN_Xtemp{ielet,1};
+%                 [T_internal,PLAST_element,Jn_1,VolRate,f_damp,STRESS] = ...
+%                 InternalForce_explicit(ielet,FEM,xlocal,x0local,global_nodes,...
+%                 Ve,QUADRATURE,properties,CONSTANT,GEOM,matyp,PLAST_element,...
+%                 KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt);
 
-                [T_internal,Jn_1,VolRate,f_damp,STRESS] = ...
-                InternalForce_explicit(ielet,FEM,xlocal,x0local,global_nodes,...
-                Ve,QUADRATURE,properties,CONSTANT,GEOM,PLAST_element,matyp,...
-                KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt);
-
-
+                  [T_internal,PLAST_element,Jn_1,VolRate,f_damp,STRESS] = ...
+                  InternalForce_explicit(ielement,FEM,xlocal,x0local,...
+                  element_connectivity,Ve,QUADRATURE,properties,CONSTANT,GEOM,...
+                  matyp,PLAST,KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt);
                 Jn_1_vec(ielet) = Jn_1;
                 VolRate_vec(ielet) = VolRate;
             end

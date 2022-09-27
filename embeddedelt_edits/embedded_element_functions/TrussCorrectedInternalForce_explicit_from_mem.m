@@ -2,9 +2,9 @@
 %InternalForce_explicit
 
 
-function [T_internal] = TrussCorrectedInternalForce_explicit(ielement,...
-          T_internal,FEM,QUADRATURE,GEOM,PLAST,...
-          KINEMATICS,MAT,DAMPING,VolumeCorrect,eelt,node_flag)
+function [T_internal] = TrussCorrectedInternalForce_explicit_from_mem(ielement,...
+          T_internal,FEM,GEOM,PLAST,STRESS,...
+          MAT,DAMPING,VolumeCorrect,eelt,node_flag)
 
 dim=GEOM.ndime;
 
@@ -52,7 +52,7 @@ dim=GEOM.ndime;
     properties_eh(2) = E_h;
     properties_eh(3) = nu_h;
 
-    [TE,PLAST,~,~,~,~,~] = element_force_truss(properties_e,xelocal,x_e,PLAST,GEOM,DAMPING,1);
+    TE=STRESS(2).InternalForce(eelt,:);
     [TC,~,~,~,~,~,~] = element_force_truss(properties_eh,xelocal,x_e,PLAST,GEOM,DAMPING,1);
 
     %----------------------------------------------------------------------
@@ -79,27 +79,7 @@ dim=GEOM.ndime;
     end
     T_e = T_e1 + T_e2; 
     T_C = T_C1 + T_C2;
-    
-% %Print test data to a file called idk
-% fid = fopen("ShapeFunctions_00.txt", "w");
-% info1 = [N_node1, reshape(T_e1,3,8)'];
-% info2 = [N_node2, reshape(T_e2,3,8)'];
-% format = [" %-5.4f      %-1.4E %-1.4E %-1.4E \n"];
-% fprintf(fid,"Node: %d\n", e_connectivity(1));
-% fprintf(fid,"Host Nodes: %u %u %u %u %u %u %u %u \n",h_connectivity);
-% fprintf(fid,format,info1');
-% fprintf(fid,"Totals\n");
-% fprintf(fid," %-5.4f      %1.4E %1.4E %1.4E\n",sum(info1(:,1)),sum(info1(:,2)),sum(info1(:,3)),sum(info1(:,4)));
-% fprintf(fid,"Truss Force: %1.4E %1.4E %1.4E\n", TE(1:3));
-% fprintf(fid,"\n");
-% % fprintf(format,info1');
-% fprintf(fid,"Node: %d\n", e_connectivity(2));
-% fprintf(fid,"Host Nodes: %u %u %u %u %u %u %u %u \n",h_connectivity);
-% fprintf(fid,format,info2');
-% fprintf(fid,"Totals\n");
-% fprintf(fid," %-5.4f      %1.4E %1.4E %1.4E\n",sum(info2(:,1)),sum(info2(:,2)),sum(info2(:,3)),sum(info2(:,4)));
-% fprintf(fid,"Truss Force: %1.4E %1.4E %1.4E\n", TE(4:6));
-% fclose(fid);    
+      
     
     %----------------------------------------------------------------------
     % Compute equivilant (internal) force vector of the host element.
