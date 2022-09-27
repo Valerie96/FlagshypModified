@@ -6,7 +6,7 @@ basedir_fem='C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edit
 % inputfile = 'RussellTensile-Half_5000Fibers7_discritized.dat';
 % inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
 inputfile = 'SmallTension_Speed.dat';
-inputfile = 'Cube_8h_4t_correct.dat';
+inputfile = 'Cube_8h_4t.dat';
 % inputfile = 'IrregularShape_newlengthfunc.dat';
 
 DAMPING.b1 = 0.04; %Linear bulk viscosity damping

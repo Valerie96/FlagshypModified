@@ -154,7 +154,7 @@ end
 % end
 
 if GEOM.embedded.HostTotals(ielement,2) > 0
-    for eelt=GEOM.embedded.HostsElements{ielement}
+    for eelt=GEOM.embedded.HostsElements{ielement}'
         node_flag = [0 0];
         if GEOM.embedded.ElementHost(eelt,1) == ielement
             node_flag(1) = 1;
