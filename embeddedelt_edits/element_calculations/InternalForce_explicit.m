@@ -2,7 +2,7 @@
 % Computes the element vector of global internal forces and the tangent
 % stiffness matrix. 
 %--------------------------------------------------------------------------
-function [T_internal,geomJn_1,VolRate,f_damp,STRESS] = ...
+function [T_internal,geomJn_1,VolRate,f_damp,temp_STRESS] = ...
           InternalForce_explicit(ielement,FEM,xlocal,x0local,...
           element_connectivity,Ve,QUADRATURE,properties,CONSTANT,GEOM,...
           PLAST,matyp,KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt)
@@ -13,6 +13,11 @@ dim=GEOM.ndime;
 % step 2.II       
 T_internal = zeros(FEM(1).mesh.n_dofs_elem,1);
 f_damp     = zeros(FEM(1).mesh.n_dofs_elem,1);
+temp_STRESS = STRESS(1);
+% temp_STRESS.Cauchy=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
+% temp_STRESS.LE=zeros(FEM(1).mesh.nelem6,QUADRATURE(1).element.ngauss);
+% temp_STRESS.InternalForce=0;
+
 %--------------------------------------------------------------------------
 % Computes initial and current gradients of shape functions and various 
 % strain measures at all the Gauss points of the element.
@@ -96,8 +101,8 @@ for igauss=1:QUADRATURE(1).element.ngauss
            LE = LE + log(lam(j))*kinematics_gauss.n(:,j)*kinematics_gauss.n(:,j)'; 
            LE(~isfinite(LE)) = 0;
        end
-       STRESS(1).Cauchy(ielement,:,igauss) = Cauchy(components);
-       STRESS(1).LE(ielement,:,igauss) = LE(components);
+       temp_STRESS.Cauchy(ielement,:,igauss) = Cauchy(components);
+       temp_STRESS.LE(ielement,:,igauss) = LE(components);
 
         
 end
@@ -165,7 +170,7 @@ if GEOM.embedded.HostTotals(ielement,2) > 0
         if node_flag(1) + node_flag(2) >= 1
             
             T_internal = TrussCorrectedInternalForce_explicit_from_mem(ielement,...
-                           T_internal,FEM,GEOM,PLAST,STRESS,...
+                           T_internal,FEM,GEOM,PLAST,STRESS(2),...
                            MAT,DAMPING,VolumeCorrect,eelt,node_flag);
         end
     end

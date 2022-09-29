@@ -52,7 +52,7 @@ dim=GEOM.ndime;
     properties_eh(2) = E_h;
     properties_eh(3) = nu_h;
 
-    TE=STRESS(2).InternalForce(eelt,:);
+    TE=STRESS.InternalForce(eelt,:);
     [TC,~,~,~,~,~,~] = element_force_truss(properties_eh,xelocal,x_e,PLAST,GEOM,DAMPING,1);
 
     %----------------------------------------------------------------------

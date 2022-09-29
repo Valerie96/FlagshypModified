@@ -2,7 +2,7 @@
 % Computes and assemble residual force vector and global tangent stiffness
 % matrix except surface (line) element pressure contributions.
 %--------------------------------------------------------------------------
-function [GLOBAL,updated_PLAST,Jn_1_vec,VolRate_vec,globef_damp,STRESS] = getForce_explicit(xlamb,...
+function [GLOBAL,updated_PLAST,Jn_1_vec,VolRate_vec,globef_damp,STRESS] = getForce_parallel(xlamb,...
           GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,INITIAL_KINEMATICS,BC,DAMPING,STRESS,EmbedElt,VolumeCorrect,dt)    
       
 Step_globalT_int = zeros(size(GLOBAL.T_int,1),1); 
@@ -63,9 +63,11 @@ k=1;
 
     temp_Cauchy=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
     temp_LE=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
+    
 
-    %parfor ielet=1:FEM(k).mesh.nelem
-    for ielet=1:FEM(k).mesh.nelem
+
+    parfor ielet=1:FEM(k).mesh.nelem
+    %for ielet=1:FEM(k).mesh.nelem
         temp_globalT_int = zeros(size(Tint,1),1); 
         temp_globalvdamp = zeros(size(Tint,1),1); 
     
@@ -98,6 +100,7 @@ k=1;
 %                 Jn_1_vec(ielement) = 1;
 %                 VolRate_vec(ielement) = 1;
                 otherwise
+                 
                  DN_X=DN_Xtemp{ielet,1};
 
                 [T_internal,Jn_1,VolRate,f_damp,elt_STRESS] = ...
@@ -110,7 +113,7 @@ k=1;
                 VolRate_vec(ielet) = VolRate;
                 temp_Cauchy(ielet,:,:) = elt_STRESS.Cauchy(ielet,:,:);
                 temp_LE(ielet,:,:) = elt_STRESS.LE(ielet,:,:);
-                
+
             end
 %             tocBytes(gcp)
             %----------------------------------------------------------------------
@@ -136,12 +139,12 @@ k=1;
 
      end
         GLOBAL.T_int = Step_globalT_int;
+        STRESS(1).Cauchy = temp_Cauchy;
+        STRESS(1).LE     = temp_LE;
 %         globef_damp = Step_globalvdamp;
 
 % end
     GLOBAL.T_int = Step_globalT_int;
-    STRESS(1).Cauchy = temp_Cauchy;
-    STRESS(1).LE     = temp_LE;
     globef_damp = Step_globalvdamp;
 
   if  BC.n_prescribed_displacements > 0

@@ -12,17 +12,17 @@ inputfile = 'Cube_8h_4t.dat';
 DAMPING.b1 = 0.04; %Linear bulk viscosity damping
 DAMPING.b2 = 1.2; %Quadratic bulk viscosity damping
 prefactor = 0.7;%0.75;
-outputfreq = 500;
+% outputfreq = 500;
 outputfreq = 10;
 ansmlv='y'; 
 
-vtuOn = 1;
+vtuOn = 0;
 
 %Damping test for 2 hex
 DAMPING.b1 = 0.06; %Linear bulk viscosity damping
 % DAMPING.b2 = 0.1; %Quadratic bulk viscosity damping
 
-% parpool('local')
+% parpool('local');
 
 tic
 %% Input_data_and_initilaization.m
@@ -364,4 +364,4 @@ toc
 delete *RESTART* 
 digits(d1);
 
-% delete(gcp)
+delete(gcp)

@@ -2,7 +2,7 @@
 % Computes the element vector of global internal forces and the tangent
 % stiffness matrix. 
 %--------------------------------------------------------------------------
-function [T_internal,geomJn_1,VolRate,f_damp,STRESS] = ...
+function [T_internal,geomJn_1,VolRate,f_damp,elet_Cauchy,elet_LE] = ...
           InternalForce_explicit(ielement,FEM,xlocal,x0local,...
           element_connectivity,Ve,QUADRATURE,properties,CONSTANT,GEOM,...
           PLAST,matyp,KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt)
@@ -13,6 +13,12 @@ dim=GEOM.ndime;
 % step 2.II       
 T_internal = zeros(FEM(1).mesh.n_dofs_elem,1);
 f_damp     = zeros(FEM(1).mesh.n_dofs_elem,1);
+
+% temp_STRESS.Cauchy=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
+% temp_STRESS.LE=zeros(FEM(1).mesh.nelem6,QUADRATURE(1).element.ngauss);
+% temp_STRESS.InternalForce=0;
+
+
 %--------------------------------------------------------------------------
 % Computes initial and current gradients of shape functions and various 
 % strain measures at all the Gauss points of the element.
@@ -96,8 +102,10 @@ for igauss=1:QUADRATURE(1).element.ngauss
            LE = LE + log(lam(j))*kinematics_gauss.n(:,j)*kinematics_gauss.n(:,j)'; 
            LE(~isfinite(LE)) = 0;
        end
-       STRESS(1).Cauchy(ielement,:,igauss) = Cauchy(components);
-       STRESS(1).LE(ielement,:,igauss) = LE(components);
+%        temp_STRESS.Cauchy(ielement,:,igauss) = Cauchy(components);
+%        temp_STRESS.LE(ielement,:,igauss) = LE(components);
+       elet_Cauchy = Cauchy(components);
+       elet_LE     = LE(components);
 
         
 end
@@ -125,36 +133,50 @@ end
 % Embedded Elt, Internal force modification, if this element has any
 % embedded elements
 
+% if GEOM.embedded.HostTotals(ielement,2) > 0
+%     node_search = 0;
+%     elt_search = 0;
+%     for eelt = 1:FEM(2).mesh.nelem
+%     node_flag = [0 0];
+%         if GEOM.embedded.ElementHost(eelt,1) == ielement
+%             node_flag(1) = 1;
+%             node_search = node_search + 1;
+%         end
+%         if GEOM.embedded.ElementHost(eelt,2) == ielement
+%             node_flag(2) = 1;
+%             node_search = node_search + 1;
+%         end
+%         if node_flag(1) + node_flag(2) >= 1
+%             
+%             T_internal = TrussCorrectedInternalForce_explicit(ielement,...
+%                            T_internal,FEM,QUADRATURE,GEOM,PLAST,...
+%                            KINEMATICS,MAT,DAMPING,VolumeCorrect,eelt,node_flag);
+%             elt_search = elt_search + 1;    
+%               
+%               if elt_search >= GEOM.embedded.HostTotals(ielement,2)
+%                   break;
+%               end
+%         end
+% 
+%     end
+% end
+
 if GEOM.embedded.HostTotals(ielement,2) > 0
-    node_search = 0;
-    elt_search = 0;
-    for eelt = 1:FEM(2).mesh.nelem
-    node_flag = [0 0];
+    for eelt=GEOM.embedded.HostsElements{ielement}'
+        node_flag = [0 0];
         if GEOM.embedded.ElementHost(eelt,1) == ielement
             node_flag(1) = 1;
-            node_search = node_search + 1;
         end
         if GEOM.embedded.ElementHost(eelt,2) == ielement
             node_flag(2) = 1;
-            node_search = node_search + 1;
         end
         if node_flag(1) + node_flag(2) >= 1
             
-            T_internal = TrussCorrectedInternalForce_explicit(ielement,...
-                           T_internal,FEM,QUADRATURE,GEOM,PLAST,...
-                           KINEMATICS,MAT,DAMPING,VolumeCorrect,eelt,node_flag);
-            elt_search = elt_search + 1;    
-              
-              if elt_search >= GEOM.embedded.HostTotals(ielement,2)
-                  break;
-              end
+            T_internal = TrussCorrectedInternalForce_explicit_from_mem(ielement,...
+                           T_internal,FEM,GEOM,PLAST,STRESS(2),...
+                           MAT,DAMPING,VolumeCorrect,eelt,node_flag);
         end
-
     end
-end
-
-if GEOM.embedded.HostTotals(ielement,2) > 0
-    for eelt=
 end
 
 
