@@ -3,8 +3,8 @@
 
 
 function [T_internal] = TrussCorrectedInternalForce_explicit_from_mem(ielement,...
-          T_internal,FEM,GEOM,PLAST,STRESS,...
-          MAT,DAMPING,VolumeCorrect,eelt,node_flag)
+          T_internal,connectivity2,host_element_type,GEOM,PLAST,STRESS,...
+          properties_h,properties_e,DAMPING,VolumeCorrect,eelt,node_flag)
 
 dim=GEOM.ndime;
 
@@ -13,18 +13,18 @@ dim=GEOM.ndime;
     %----------------------------------------------------------------------
     % GATHER material properties of the host and embedded elt
     %----------------------------------------------------------------------   
-    material_number   = MAT(1).matno(ielement);     
-    matyp_h           = MAT(1).matyp(material_number);        
-    properties_h      = MAT(1).props(:,material_number);                       
-    Ve_h              = GEOM.Ve(ielement);  
+%     material_number   = MAT(1).matno(ielement);     
+%     matyp_h           = MAT(1).matyp(material_number);        
+%     properties_h      = MAT(1).props(:,material_number);                       
+%     Ve_h              = GEOM.Ve(ielement);  
     
-    material_number   = MAT(2).matno(eelt);     
-    matyp_e           = MAT(2).matyp(material_number);        
-    properties_e      = MAT(2).props(:,material_number);
-    Ve_e              = GEOM.Ve(eelt);  
+%     material_number   = MAT(2).matno(eelt);     
+%     matyp_e           = MAT(2).matyp(material_number);        
+%     properties_e      = MAT(2).props(:,material_number);
+%     Ve_e              = GEOM.Ve(eelt);  
     
     %Get embedded element information
-    e_connectivity = FEM(2).mesh.connectivity(:,eelt);
+    e_connectivity = connectivity2(:,eelt);%FEM(2).mesh.connectivity(:,eelt);
     x_e = GEOM.x0(:,e_connectivity);
     xelocal  = GEOM.x(:,e_connectivity);                     
     e_nodes_zeta = GEOM.embedded.Embed_Zeta(:,e_connectivity);
@@ -61,15 +61,15 @@ dim=GEOM.ndime;
     %---------------------------------------------------------------------- 
     % Shape functions at embedded element node in their respective hosts
     % (not nessisarily ielement)
-    N_node1 = shape_function_values_at(e_nodes_zeta(:,1), FEM(1).mesh.element_type);
-    N_node2 = shape_function_values_at(e_nodes_zeta(:,2), FEM(1).mesh.element_type);
+    N_node1 = shape_function_values_at(e_nodes_zeta(:,1), host_element_type);
+    N_node2 = shape_function_values_at(e_nodes_zeta(:,2), host_element_type);
     
     %Force from embedded nodes distribted over host nodes
-    T_e1 = zeros(GEOM.ndime*8, 1);
-    T_e2 = zeros(GEOM.ndime*8, 1);
+    T_e1 = zeros(dim*8, 1);
+    T_e2 = zeros(dim*8, 1);
     %Do the same for the correction force
-    T_C1 = zeros(GEOM.ndime*8, 1);
-    T_C2 = zeros(GEOM.ndime*8, 1);
+    T_C1 = zeros(dim*8, 1);
+    T_C2 = zeros(dim*8, 1);
     for i = 1:3:24
        T_e1(i:i+2) = TE(1:3)*N_node1((i-1)/3 + 1)*percent1*node_flag(1); 
        T_e2(i:i+2) = TE(4:6)*N_node2((i-1)/3 + 1)*percent2*node_flag(2); 

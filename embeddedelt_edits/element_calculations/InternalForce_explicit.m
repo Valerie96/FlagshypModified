@@ -4,26 +4,22 @@
 %--------------------------------------------------------------------------
 function [T_internal,geomJn_1,VolRate,f_damp,temp_STRESS] = ...
           InternalForce_explicit(ielement,FEM,xlocal,x0local,...
-          element_connectivity,Ve,QUADRATURE,properties,CONSTANT,GEOM,...
+          Ve,QUAD,properties,CONSTANT,GEOM,...
           PLAST,matyp,KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt)
       
 dim=GEOM.ndime;
 
-
 % step 2.II       
 T_internal = zeros(FEM(1).mesh.n_dofs_elem,1);
 f_damp     = zeros(FEM(1).mesh.n_dofs_elem,1);
-temp_STRESS = STRESS(1);
-% temp_STRESS.Cauchy=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
-% temp_STRESS.LE=zeros(FEM(1).mesh.nelem6,QUADRATURE(1).element.ngauss);
-% temp_STRESS.InternalForce=0;
+temp_STRESS = struct('Cauchy',zeros(1,6,8),'LE',zeros(1,6,8));
 
 %--------------------------------------------------------------------------
 % Computes initial and current gradients of shape functions and various 
 % strain measures at all the Gauss points of the element.
 %--------------------------------------------------------------------------
 KINEMATICS(1) = gradients(xlocal,x0local,FEM(1).interpolation.element.DN_chi,...
-             QUADRATURE(1).element,KINEMATICS(1),DN_X);
+             QUAD,KINEMATICS(1),DN_X);
 
 
 Jn_1=GEOM.Jn_1(ielement);
@@ -38,15 +34,15 @@ b2=DAMPING.b2;
 switch matyp
      case {5,7,17}
           [pressure,kappa_bar,DN_x_mean,ve] = ...
-           mean_dilatation_pressure(FEM,dim,matyp,properties,Ve,...
-                                    QUADRATURE,KINEMATICS);
+           mean_dilatation_pressure(FEM(1).mesh.n_nodes_elem,dim,matyp,properties,Ve,...
+                                    QUAD,KINEMATICS(1));
      otherwise
           pressure = 0;
 end
 %--------------------------------------------------------------------------
 % Gauss quadrature integration loop.
 %--------------------------------------------------------------------------
-for igauss=1:QUADRATURE(1).element.ngauss
+for igauss=1:QUAD.ngauss
     %----------------------------------------------------------------------
     % Extract kinematics at the particular Gauss point.
     %----------------------------------------------------------------------
@@ -68,8 +64,8 @@ for igauss=1:QUADRATURE(1).element.ngauss
     
     %----------------------------------------------------------------------
     % Calculate bulk viscosity damping
-%     [le,~]=calc_element_size(FEM(1),GEOM(1),ielement);
-    le=calc_min_element_size(FEM(1),GEOM(1),ielement);
+    global_nodes=FEM(1).mesh.connectivity(:,ielement);
+    le=calc_min_element_size(GEOM.x(:,global_nodes),FEM(1).mesh.element_type);
     rho=properties(1); mu=properties(2); lambda=properties(3);
     Cd=sqrt((lambda + 2*mu)/rho);
     
@@ -79,7 +75,7 @@ for igauss=1:QUADRATURE(1).element.ngauss
     %----------------------------------------------------------------------
     % Compute numerical integration multipliers.
     %----------------------------------------------------------------------
-    JW = kinematics_gauss.Jx_chi*QUADRATURE(1).element.W(igauss)*...
+    JW = kinematics_gauss.Jx_chi*QUAD.W(igauss)*...
          thickness_plane_stress(properties,kinematics_gauss.J,matyp);
     %----------------------------------------------------------------------
     % Compute equivalent (internal) force vector.
@@ -101,8 +97,8 @@ for igauss=1:QUADRATURE(1).element.ngauss
            LE = LE + log(lam(j))*kinematics_gauss.n(:,j)*kinematics_gauss.n(:,j)'; 
            LE(~isfinite(LE)) = 0;
        end
-       temp_STRESS.Cauchy(ielement,:,igauss) = Cauchy(components);
-       temp_STRESS.LE(ielement,:,igauss) = LE(components);
+       temp_STRESS.Cauchy(1,:,igauss) = Cauchy(components);
+       temp_STRESS.LE(1,:,igauss) = LE(components);
 
         
 end
@@ -169,9 +165,11 @@ if GEOM.embedded.HostTotals(ielement,2) > 0
         end
         if node_flag(1) + node_flag(2) >= 1
             
+            material_number   = MAT(2).matno(eelt);
+            properties_e      = MAT(2).props(:,material_number);
             T_internal = TrussCorrectedInternalForce_explicit_from_mem(ielement,...
-                           T_internal,FEM,GEOM,PLAST,STRESS(2),...
-                           MAT,DAMPING,VolumeCorrect,eelt,node_flag);
+                           T_internal,FEM(2).mesh.connectivity,FEM(1).mesh.element_type,GEOM,PLAST,STRESS(2),...
+                           properties,properties_e,DAMPING,VolumeCorrect,eelt,node_flag);
         end
     end
 end

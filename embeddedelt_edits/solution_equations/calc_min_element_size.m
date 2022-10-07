@@ -1,10 +1,10 @@
-function [le] =calc_min_element_size(FEM,GEOM,ielement)
+function [le] =calc_min_element_size(xlocal,element_type)
 
-global_nodes    = FEM.mesh.connectivity(:,ielement);
-xlocal          = GEOM.x(:,global_nodes) ;
+% global_nodes    = FEM.mesh.connectivity(:,ielement);
+% xlocal          = GEOM.x(:,global_nodes) ;
 
 
-    switch FEM.mesh.element_type 
+    switch element_type 
         case'hexa8'
             % examine each each edge of hex 
             % there are 12 edges in a hex

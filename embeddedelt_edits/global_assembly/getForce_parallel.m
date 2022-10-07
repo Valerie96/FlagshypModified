@@ -63,7 +63,7 @@ k=1;
 
     temp_Cauchy=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
     temp_LE=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
-    
+    QUAD=QUADRATURE(1).element;
 
 
     parfor ielet=1:FEM(k).mesh.nelem
@@ -104,15 +104,15 @@ k=1;
                  DN_X=DN_Xtemp{ielet,1};
 
                 [T_internal,Jn_1,VolRate,f_damp,elt_STRESS] = ...
-                InternalForce_explicit(ielet,FEM,xlocal,x0local,global_nodes,...
-                Ve,QUADRATURE,properties,CONSTANT,GEOM,PLAST_element,matyp,...
+                InternalForce_explicit(ielet,FEM,xlocal,x0local,...
+                Ve,QUAD,properties,CONSTANT,GEOM,PLAST_element,matyp,...
                 KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt);
 
 
                 Jn_1_vec(ielet) = Jn_1;
                 VolRate_vec(ielet) = VolRate;
-                temp_Cauchy(ielet,:,:) = elt_STRESS.Cauchy(ielet,:,:);
-                temp_LE(ielet,:,:) = elt_STRESS.LE(ielet,:,:);
+                temp_Cauchy(ielet,:,:) = elt_STRESS.Cauchy(1,:,:);
+                temp_LE(ielet,:,:) = elt_STRESS.LE(1,:,:);
 
             end
 %             tocBytes(gcp)

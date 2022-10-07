@@ -6,14 +6,14 @@ basedir_fem='C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edit
 % inputfile = 'RussellTensile-Half_5000Fibers7_discritized.dat';
 % inputfile = 'AttwoodCompression-1_1000Fibers7_discritized.dat';
 inputfile = 'SmallTension_Speed.dat';
-inputfile = 'Cube_8h_4t.dat';
+% inputfile = 'Cube_8h_4t.dat';
 % inputfile = 'IrregularShape_newlengthfunc.dat';
 
 DAMPING.b1 = 0.04; %Linear bulk viscosity damping
 DAMPING.b2 = 1.2; %Quadratic bulk viscosity damping
 prefactor = 0.7;%0.75;
-% outputfreq = 500;
-outputfreq = 10;
+outputfreq = 500;
+% outputfreq = 10;
 ansmlv='y'; 
 
 vtuOn = 0;
@@ -364,4 +364,4 @@ toc
 delete *RESTART* 
 digits(d1);
 
-delete(gcp)
+% delete(gcp)

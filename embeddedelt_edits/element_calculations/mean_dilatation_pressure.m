@@ -1,9 +1,9 @@
 %--------------------------------------------------------------------------
 % Computes element mean dilatation kinematics, pressure and bulk modulus.
 %--------------------------------------------------------------------------
-function [pressure,kappa_bar,DN_x_mean,ve] = mean_dilatation_pressure(FEM,...
+function [pressure,kappa_bar,DN_x_mean,ve] = mean_dilatation_pressure(n_nodes_elem,...
           dim,matyp,properties,Ve,QUADRATURE,KINEMATICS)
-DN_x_mean = zeros(dim,FEM.mesh.n_nodes_elem);
+DN_x_mean = zeros(dim,n_nodes_elem);
 ve = 0;
 for igauss=1:QUADRATURE.ngauss
     JW = KINEMATICS.Jx_chi(igauss)*QUADRATURE.W(igauss);

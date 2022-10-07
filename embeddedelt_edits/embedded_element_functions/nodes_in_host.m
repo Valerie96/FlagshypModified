@@ -25,7 +25,8 @@ n_elt = length(FEM.mesh.host);
      centroids(ielement,:) = [mean(xn(1,:)) mean(xn(2,:)) mean(xn(3,:))];
  
      %Calculate characteristic element length
-     lei = calc_max_element_size(FEM,GEOM,ielement);
+     global_nodes    = FEM.mesh.connectivity(:,ielement);
+     lei = calc_max_element_size(GEOM.x(:,global_nodes),FEM.mesh.element_type);
      if lei>le
          le=lei;
      end

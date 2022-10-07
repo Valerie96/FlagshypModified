@@ -249,14 +249,14 @@ name1f = "FlagshypACI";
 FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
 
 
-file1="ACISpeed1AttwoodCompression-1_1000Fibers7_discritized";
-name2f = "FlagshypACI-SpeedUpdate1";
+file1="ACISpeed2AttwoodCompression-1_1000Fibers7_discritized";
+name2f = "FlagshypACI-SpeedUpdate2";
 FLAG_2 = ReadFlagshypOutputFile(file1,'jf'); 
 
-file1="ACISpeed2AttwoodCompression-1_1000Fibers7_discritized";
-name3f = "FlagshypACI-SpeedUpdate2";
+file1="ACISpeed3AttwoodCompression-1_1000Fibers7_discritized";
+name3f = "FlagshypACI-SpeedUpdate3";
 FLAG_3 = ReadFlagshypOutputFile(file1,'jf'); 
-
+%%
 suffix = ' ';
 
 [AbqOneHost, AbqETruss, AbqEOne]  = ReadAbaqus_excel(strcat("Abaqus_xlsx/AttwoodCompression-1_1000Fibers5",suffix));
@@ -292,8 +292,8 @@ hold on; grid on;
 % fig=gcf; fig.Position=graphsize;
 plot(Ex_Strain,Ex_Stress,'k','DisplayName',name1,'LineWidth',4)
 plot(-AbqOneHost.U(:,3,Abq460)/t0,-AbRF*10^-6/A0,'bo','DisplayName',name1a);
-plot(-FLAG_1.Disp(:,3,460)/t0,-FRF*10^-6/A0,'b','DisplayName',name1f,'LineWidth',3);
-plot(-FLAG_3.Disp(:,3,460)/t0,-FRF3*10^-6/A0,'r','DisplayName',name1f,'LineWidth',2);
+plot(-FLAG_1.Disp(:,3,460)/t0,-FRF*10^-6/A0,'b','DisplayName',name2f,'LineWidth',3);
+plot(-FLAG_3.Disp(:,3,460)/t0,-FRF3*10^-6/A0,'r','DisplayName',name3f,'LineWidth',2);
 title(strcat("Compressive Stress vs Strain",suffix));
 xlabel("Compressive Strain (m/m)");
 ylabel("Stress (MPa)");

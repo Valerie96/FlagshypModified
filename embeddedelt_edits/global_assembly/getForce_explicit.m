@@ -101,15 +101,15 @@ k=1;
                  DN_X=DN_Xtemp{ielet,1};
 
                 [T_internal,Jn_1,VolRate,f_damp,elt_STRESS] = ...
-                InternalForce_explicit(ielet,FEM,xlocal,x0local,global_nodes,...
-                Ve,QUADRATURE,properties,CONSTANT,GEOM,PLAST_element,matyp,...
+                InternalForce_explicit(ielet,FEM,xlocal,x0local,...
+                Ve,QUADRATURE(1).element,properties,CONSTANT,GEOM,PLAST_element,matyp,...
                 KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt);
 
 
                 Jn_1_vec(ielet) = Jn_1;
                 VolRate_vec(ielet) = VolRate;
-                temp_Cauchy(ielet,:,:) = elt_STRESS.Cauchy(ielet,:,:);
-                temp_LE(ielet,:,:) = elt_STRESS.LE(ielet,:,:);
+                temp_Cauchy(ielet,:,:) = elt_STRESS.Cauchy(1,:,:);
+                temp_LE(ielet,:,:) = elt_STRESS.LE(1,:,:);
                 
             end
 %             tocBytes(gcp)
