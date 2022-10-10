@@ -9,22 +9,10 @@ Step_globalT_int = zeros(size(GLOBAL.T_int,1),1);
 Step_globalvdamp = zeros(size(GLOBAL.T_int,1),1); 
 
 
-%If embedded elements are being used, calculated the stresses of the
-%embedded elements first so they can be used in the internal force
-%calculation of the host elements
 if EmbedElt==1
-    for ielet=1:FEM(2).mesh.nelem
-        global_nodes    = FEM(2).mesh.connectivity(:,ielet);   
-        material_number = MAT(2).matno(ielet);
-        properties      = MAT(2).props(:,material_number); 
-        xlocal          = GEOM.x(:,global_nodes);                     
-        x0local         = GEOM.x0(:,global_nodes);  
-        [T_internal,~,~,~,Cauchy,LE, ~] = element_force_truss(...
-          properties,xlocal,x0local,PLAST(1),GEOM,DAMPING,dt);
-       STRESS(2).Cauchy(ielet) = Cauchy;
-       STRESS(2).LE(ielet) = LE;
-       STRESS(2).InternalForce(ielet,:)=T_internal';
-    end
+    e=1;
+else
+    e=0;
 end
 
 % for k = [1:FEM(1).n_elet_type-e]
@@ -61,8 +49,8 @@ k=1;
     elt_type        = FEM(k).mesh.element_type;
     DN_Xtemp        = INITIAL_KINEMATICS(1).DN_X;
 
-    temp_Cauchy=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
-    temp_LE=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
+%     temp_Cauchy=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
+%     temp_LE=zeros(FEM(1).mesh.nelem,6,QUADRATURE(1).element.ngauss);
     QUAD=QUADRATURE(1).element;
 
 
@@ -103,16 +91,16 @@ k=1;
                  
                  DN_X=DN_Xtemp{ielet,1};
 
-                [T_internal,Jn_1,VolRate,f_damp,elt_STRESS] = ...
-                InternalForce_explicit(ielet,FEM,xlocal,x0local,...
+                [T_internal,Jn_1,VolRate,f_damp] = ...
+                InternalForce_parallel(ielet,FEM,xlocal,x0local,...
                 Ve,QUAD,properties,CONSTANT,GEOM,PLAST_element,matyp,...
-                KINEMATICS,DN_X,MAT,DAMPING,STRESS,VolumeCorrect,dt);
+                KINEMATICS,DN_X,MAT,DAMPING,VolumeCorrect,dt);
 
 
                 Jn_1_vec(ielet) = Jn_1;
                 VolRate_vec(ielet) = VolRate;
-                temp_Cauchy(ielet,:,:) = elt_STRESS.Cauchy(1,:,:);
-                temp_LE(ielet,:,:) = elt_STRESS.LE(1,:,:);
+%                 temp_Cauchy(ielet,:,:) = elt_STRESS.Cauchy(1,:,:);
+%                 temp_LE(ielet,:,:) = elt_STRESS.LE(1,:,:);
 
             end
 %             tocBytes(gcp)
@@ -139,8 +127,8 @@ k=1;
 
      end
         GLOBAL.T_int = Step_globalT_int;
-        STRESS(1).Cauchy = temp_Cauchy;
-        STRESS(1).LE     = temp_LE;
+%         STRESS(1).Cauchy = temp_Cauchy;
+%         STRESS(1).LE     = temp_LE;
 %         globef_damp = Step_globalvdamp;
 
 % end

@@ -244,14 +244,15 @@ xlim([0 0.3]);
 % legend('show');
 
 %%  Data vs Flagshyp and Abaqus
-file1="ACIAttwoodCompression-1_1000Fibers7_discritized";
+% file1="ACIAttwoodCompression-1_1000Fibers7_discritized";
 name1f = "FlagshypACI";
-FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
+% FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 
 
 
 file1="ACISpeed2AttwoodCompression-1_1000Fibers7_discritized";
 name2f = "FlagshypACI-SpeedUpdate2";
 FLAG_2 = ReadFlagshypOutputFile(file1,'jf'); 
+FLAG_1 = FLAG_2;
 
 file1="ACISpeed3AttwoodCompression-1_1000Fibers7_discritized";
 name3f = "FlagshypACI-SpeedUpdate3";

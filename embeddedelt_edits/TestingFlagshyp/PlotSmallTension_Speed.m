@@ -13,6 +13,20 @@ PlotEnergy([FLAG_1.Etime, FLAG_1.VD],[FLAG_1.Etime, FLAG_1.VD], name1f, name1f, 
 PlotEnergy([FLAG_1.Etime, FLAG_1.ET],[FLAG_1.Etime, FLAG_1.ET], name1f, name1f, 'Tension - Total Energy')
 
 %%
+figure();
+hold on; grid on;
+plot(FLAG_1.time,FLAG_1.Disp(:,1,1),'b','DisplayName',name1f,'LineWidth',3);
+xlabel("Time (s)");
+ylabel("Disp");
+legend('show');
+
+figure();
+hold on; grid on;
+plot(FLAG_1.HostLE(:,1,1),FLAG_1.HostS(:,1,1)*10^-6,'b','DisplayName',name1f,'LineWidth',3);
+xlabel("Strain");
+ylabel("Stress (MPa)");
+legend('show');
+%%
 file1="IrregularShape";
 name1f = "Flagshyp";
 FLAG_1 = ReadFlagshypOutputFile(file1,'jf'); 

@@ -1,5 +1,6 @@
 %A bunch of pieces of flagshyp smashed together so I can actually figure
 %out what all of the variables are. This may be a disaster
+% function Frankenstein()
 clear; clc; close all; 
 basedir_fem='C:/Users/Valerie/Documents/GitHub/FlagshypModified/embeddedelt_edits/';
 % basedir_fem='C:/Users/Valerie/Documents/GitHub/flagshyp/embeddedelt_edits/job_folder/StrainRateTesting';
@@ -16,7 +17,7 @@ outputfreq = 500;
 % outputfreq = 10;
 ansmlv='y'; 
 
-vtuOn = 0;
+vtuOn = 1;
 
 %Damping test for 2 hex
 DAMPING.b1 = 0.06; %Linear bulk viscosity damping
@@ -171,7 +172,7 @@ output(PRO,CON,GEOM,FEM,BC,GLOBAL,MAT,PLAST,QUADRATURE,CONSTANT,KINEMATICS,INITI
 CON.incrm = CON.incrm + 1; 
 
 %step 2 - getForce
-[GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp,STRESS] = getForce_explicit(CON.xlamb,...
+[GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp,STRESS] = getForce_parallel(CON.xlamb,...
           GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,INITIAL_KINEMATICS,BC,DAMPING,STRESS,EmbedElt,VolumeCorrect,1);      
      
 %step 3 - compute accelerations.
@@ -289,7 +290,7 @@ while(Time<tMax)
   f_damp_prev = f_damp;
   
 %step 8 - getForce
-  [GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp,STRESS] = getForce_explicit(CON.xlamb,...
+  [GLOBAL,updated_PLAST,GEOM.Jn_1,GEOM.VolRate,f_damp,STRESS] = getForce_parallel(CON.xlamb,...
           GEOM,MAT,FEM,GLOBAL,CONSTANT,QUADRATURE,PLAST,KINEMATICS,INITIAL_KINEMATICS,BC,DAMPING,STRESS,EmbedElt,VolumeCorrect,dt);
 
   GLOBAL.external_load_effective = GLOBAL.external_load + GLOBAL.Reactions;
